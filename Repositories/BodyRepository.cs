@@ -1,32 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using vueproject_asp.Data;
+using Dapper;
 using vueproject_asp.Models;
 
 namespace vueproject_asp.Repositories
 {
     public class BodyRepository
     {
-        private readonly AppDbContext _context;
+        private readonly string _connectionString;
 
-        public BodyRepository(AppDbContext context)
+        // Constructor to inject connection string
+        public BodyRepository(string connectionString)
         {
-            _context = context;
+            _connectionString = connectionString;
         }
 
         // Method to fetch all Body records
         public async Task<List<Body>> GetBodies()
         {
-           
-            return await _context.Bodies.ToListAsync();
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(); // Ensure the connection is open
+            var query = "SELECT * FROM Bodies";
+            var bodies = await connection.QueryAsync<Body>(query);
+            return bodies.AsList();
         }
 
         // Method to fetch a single Body record by ID
         public async Task<Body> GetBodyById(int id)
         {
-            return await _context.Bodies.FindAsync(id);  // Use FindAsync for primary key lookups
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(); // Ensure the connection is open
+            var query = "SELECT * FROM Bodies WHERE Id = @Id";
+            var body = await connection.QueryFirstOrDefaultAsync<Body>(query, new { Id = id });
+
+            if (body == null)
+            {
+                throw new KeyNotFoundException($"Body with ID {id} not found.");
+            }
+
+            return body;
         }
 
         // Method to insert a new Body record and return the created body
@@ -37,11 +51,18 @@ namespace vueproject_asp.Repositories
                 throw new ArgumentNullException(nameof(body), "Body cannot be null.");
             }
 
-            body.CreatedDate ??= DateTime.UtcNow;  // Set CreatedDate if not set
+            // Set CreatedDate if not set
+            body.CreatedDate ??= DateTime.UtcNow;
 
-            await _context.Bodies.AddAsync(body);
-            await _context.SaveChangesAsync();
-            return body;  // Return the created body with its ID populated
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(); // Ensure the connection is open
+            var query = @"
+                INSERT INTO Bodies (Title, TitleDescription, OrderNumber, CreatedBy, CreatedDate)
+                VALUES (@Title, @TitleDescription, @OrderNumber, @CreatedBy, @CreatedDate);
+                SELECT CAST(SCOPE_IDENTITY() as int)";
+            var id = await connection.QuerySingleAsync<int>(query, body);
+            body.Id = id;
+            return body; // Return the created body with its ID populated
         }
 
         // Method to update an existing Body record
@@ -52,36 +73,48 @@ namespace vueproject_asp.Repositories
                 throw new ArgumentNullException(nameof(body), "Body cannot be null.");
             }
 
-            var existingBody = await _context.Bodies.FindAsync(id);  // Using FindAsync for primary key lookup
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(); // Ensure the connection is open
+            var query = "SELECT * FROM Bodies WHERE Id = @Id";
+            var existingBody = await connection.QueryFirstOrDefaultAsync<Body>(query, new { Id = id });
 
             if (existingBody == null)
             {
-                throw new KeyNotFoundException("Body with the specified ID not found.");
+                throw new KeyNotFoundException($"Body with ID {id} not found.");
             }
 
-            existingBody.Title = body.Title;
-            existingBody.TitleDescription = body.TitleDescription;
-            existingBody.OrderNumber = body.OrderNumber;
-            existingBody.ModifiedBy = body.ModifiedBy;
-            existingBody.ModifiedDate = DateTime.UtcNow;  // Optionally set the ModifiedDate
+            // Update query
+            var updateQuery = @"
+                UPDATE Bodies 
+                SET Title = @Title, 
+                    TitleDescription = @TitleDescription, 
+                    OrderNumber = @OrderNumber, 
+                    ModifiedBy = @ModifiedBy, 
+                    ModifiedDate = @ModifiedDate 
+                WHERE Id = @Id";
 
-            await _context.SaveChangesAsync();
-            return existingBody;  // Return the updated record
+            await connection.ExecuteAsync(updateQuery, new
+            {
+                body.Title,
+                body.TitleDescription,
+                body.OrderNumber,
+                body.ModifiedBy,
+                ModifiedDate = DateTime.UtcNow,
+                Id = id
+            });
+
+            return body; // Return the updated record
         }
 
         // Method to delete a Body record by ID
         public async Task<bool> DeleteBody(int id)
         {
-            var body = await _context.Bodies.FromSqlRaw("EXEC GetBodyById @Id = {0}", id).FirstOrDefaultAsync();// Using FindAsync for primary key lookup
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(); // Ensure the connection is open
+            var query = "DELETE FROM Bodies WHERE Id = @Id";
+            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
 
-            if (body == null)
-            {
-                return false;  // Return false if body not found
-            }
-
-            _context.Bodies.Remove(body);
-            await _context.SaveChangesAsync();
-            return true;  // Return true if deletion was successful
+            return rowsAffected > 0; // Return true if deletion was successful, otherwise false
         }
     }
 }

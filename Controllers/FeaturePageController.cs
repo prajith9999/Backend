@@ -62,7 +62,7 @@ namespace vueproject_asp.Controllers
                 return BadRequest();
             }
 
-            await _repository.UpdateFeaturePage(featurePage);  // No need to assign a variable here
+            await _repository.UpdateFeaturePage(featurePage); // Directly call repository without variable assignment
 
             return NoContent();
         }

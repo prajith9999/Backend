@@ -1,57 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.Data.SqlClient;
+
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using vueproject_asp.Data;
+using Dapper;
 using vueproject_asp.Models;
 
 namespace vueproject_asp.Repositories
 {
-    public class FooterRepository(AppDbContext context)
+    public class FooterRepository
     {
-        private readonly AppDbContext _context = context;
+        private readonly string _connectionString;
 
-        // Method to fetch all Footer records
+        // Constructor to inject the connection string
+        public FooterRepository(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
+        // Get all Footers
         public async Task<List<Footer>> GetFooters()
         {
-            return await _context.Footers.ToListAsync();
+            using var connection = new SqlConnection(_connectionString);
+            var query = "SELECT * FROM Footers";
+            var footers = await connection.QueryAsync<Footer>(query);
+            return footers.AsList();
         }
 
-        // Method to fetch a single Footer record by ID
+        // Get a single Footer by ID
         public async Task<Footer> GetFooterById(int id)
         {
-#pragma warning disable CS8603 // Possible null reference return.
-            return await _context.Footers.FirstOrDefaultAsync(f => f.ID == id);
-#pragma warning restore CS8603 // Possible null reference return.
+            using var connection = new SqlConnection(_connectionString);
+            var query = "SELECT * FROM Footers WHERE ID = @Id";
+            var footer = await connection.QueryFirstOrDefaultAsync<Footer>(query, new { Id = id });
+
+            if (footer == null)
+            {
+                throw new KeyNotFoundException($"Footer with ID {id} not found.");
+            }
+
+            return footer;
         }
 
-        // Method to insert a new Footer record
-        public async Task<Footer> CreateFooter(Footer footer)
+        // Create a new Footer
+        public async Task<Footer> CreateFooter(Footer footer, Task<int> task)
         {
             if (footer == null)
             {
                 throw new ArgumentNullException(nameof(footer), "Footer cannot be null.");
             }
 
-            await _context.Footers.AddAsync(footer);
-            await _context.SaveChangesAsync();
-            return footer;  // Return the created Footer
-        }
-
-        // Method to insert a new Footer record (alternative method name)
-        public async Task InsertFooter(Footer footer)
-        {
-            if (footer == null)
+            using var connection = new SqlConnection(_connectionString);
+            var query = @"
+                INSERT INTO Footers (Content, CreatedDate)
+                VALUES (@Content, @CreatedDate);
+                SELECT CAST(SCOPE_IDENTITY() as int)";
+            Task<int> task1 = connection.QuerySingleAsync<int>(query, new
             {
-                throw new ArgumentNullException(nameof(footer), "Footer cannot be null.");
-            }
-
-            await _context.Footers.AddAsync(footer);
-            await _context.SaveChangesAsync();
+                footer.Content,
+                CreatedDate = DateTime.UtcNow
+            });
+            var id = await task1;
+            footer.ID = id;
+            return footer;
         }
 
-        // Method to update an existing Footer record
+        // Update an existing Footer
         public async Task UpdateFooter(Footer footer)
         {
             if (footer == null)
@@ -59,19 +73,41 @@ namespace vueproject_asp.Repositories
                 throw new ArgumentNullException(nameof(footer), "Footer cannot be null.");
             }
 
-            _context.Footers.Update(footer);
-            await _context.SaveChangesAsync();
+            using var connection = new SqlConnection(_connectionString);
+            var query = @"
+                UPDATE Footers
+                SET Content = @Content,
+                    ModifiedDate = @ModifiedDate
+                WHERE ID = @Id";
+            var rowsAffected = await connection.ExecuteAsync(query, new
+            {
+                footer.Content,
+                ModifiedDate = DateTime.UtcNow,
+                Id = footer.ID
+            });
+
+            if (rowsAffected == 0)
+            {
+                throw new KeyNotFoundException($"Footer with ID {footer.ID} not found.");
+            }
         }
 
-        // Method to delete a Footer record by ID
+        // Delete a Footer
         public async Task DeleteFooter(int id)
         {
-            var footer = await _context.Footers.FindAsync(id);
-            if (footer != null)
+            using var connection = new SqlConnection(_connectionString);
+            var query = "DELETE FROM Footers WHERE ID = @Id";
+            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
+
+            if (rowsAffected == 0)
             {
-                _context.Footers.Remove(footer);
-                await _context.SaveChangesAsync();
+                throw new KeyNotFoundException($"Footer with ID {id} not found.");
             }
+        }
+
+        internal async Task CreateFooter(Footer footer, object task)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace vueproject_asp.Models
 {
@@ -10,13 +9,17 @@ namespace vueproject_asp.Models
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; }  // Corrected: Ensure this property exists
+        public string FirstName { get; set; }  // First name property
+
+        [Required]
+        [MaxLength(100)]
+        public string LastName { get; set; }   // Last name property
 
         [Required]
         [MaxLength(100)]
         public string Email { get; set; }
 
         [Required]
-        public string Role { get; set; }
+        public string Role { get; set; }        // Assuming a role property
     }
 }

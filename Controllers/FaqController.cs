@@ -3,6 +3,8 @@ using vueproject_asp.Models;
 using vueproject_asp.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
+
 
 namespace vueproject_asp.Controllers
 {
@@ -24,9 +26,8 @@ namespace vueproject_asp.Controllers
         {
             var faqs = await _faqRepository.GetFaqs();
             if (faqs == null || faqs.Count == 0)
-            {
                 return NotFound();
-            }
+
             return Ok(faqs);
         }
 

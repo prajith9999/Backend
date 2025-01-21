@@ -5,6 +5,8 @@ namespace vueproject_asp.Models
 {
     public class Faq
     {
+        public string? Question { get;  set; }
+        public string? Answer { get;  set; }
         [Key]
         public int ID { get; set; }
 

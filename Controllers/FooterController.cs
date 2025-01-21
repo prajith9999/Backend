@@ -8,14 +8,22 @@ namespace vueproject_asp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FooterController(FooterRepository repository) : ControllerBase
+    public class FooterController : ControllerBase
     {
+        private readonly FooterRepository _repository;
+        private readonly Task<int> task;
+
+        // Constructor for FooterController
+        public FooterController(FooterRepository repository)
+        {
+            _repository = repository;
+        }
 
         // HTTP GET: api/Footer
         [HttpGet]
         public async Task<ActionResult<List<Footer>>> GetFooters()
         {
-            var footers = await repository.GetFooters();
+            var footers = await _repository.GetFooters();
             return Ok(footers);
         }
 
@@ -23,7 +31,7 @@ namespace vueproject_asp.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Footer>> GetFooter(int id)
         {
-            var footer = await repository.GetFooterById(id);
+            var footer = await _repository.GetFooterById(id);
 
             if (footer == null)
             {
@@ -42,7 +50,8 @@ namespace vueproject_asp.Controllers
                 return BadRequest();
             }
 
-            var createdFooter = await repository.CreateFooter(footer);
+            var createdFooter = await _repository.CreateFooter(footer,task
+);
             return CreatedAtAction(nameof(GetFooter), new { id = createdFooter.ID }, createdFooter);
         }
 
@@ -55,7 +64,7 @@ namespace vueproject_asp.Controllers
                 return BadRequest();
             }
 
-            await repository.UpdateFooter(footer);
+            await _repository.UpdateFooter(footer);
             return NoContent();
         }
 
@@ -63,14 +72,14 @@ namespace vueproject_asp.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteFooter(int id)
         {
-            var footer = await repository.GetFooterById(id);
+            var footer = await _repository.GetFooterById(id);
 
             if (footer == null)
             {
                 return NotFound();
             }
 
-            await repository.DeleteFooter(id);
+            await _repository.DeleteFooter(id);
             return NoContent();
         }
     }

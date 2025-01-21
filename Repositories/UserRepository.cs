@@ -1,61 +1,83 @@
-﻿using System.Collections.Generic;
+﻿using Dapper;
+using Microsoft.Data.SqlClient;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using vueproject_asp.Data;
 using vueproject_asp.Models;
 
 namespace vueproject_asp.Repositories
 {
     public class UserRepository
     {
-        private readonly AppDbContext _context;
+        private readonly string _connectionString;
 
-        public UserRepository(AppDbContext context)
+        public UserRepository(string connectionString)
         {
-            _context = context;
+            _connectionString = connectionString;
         }
 
+        // Get all users using stored procedure
         public async Task<List<User>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            using var connection = new SqlConnection(_connectionString);
+            var query = "EXEC dbo.GetUsers";
+            var users = await connection.QueryAsync<User>(query);
+            return users.AsList();
         }
 
+        // Get a user by ID using stored procedure
         public async Task<User> GetUserById(int id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.ID == id);
+            using var connection = new SqlConnection(_connectionString);
+            var query = "EXEC dbo.GetUserById @Id";
+            return await connection.QueryFirstOrDefaultAsync<User>(query, new { Id = id });
         }
 
+        // Create a new user using stored procedure
         public async Task<User> CreateUser(User user)
         {
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+            using var connection = new SqlConnection(_connectionString);
+            var query = "EXEC dbo.CreateUser @FirstName, @LastName, @Email";
+            var id = await connection.QuerySingleAsync<int>(query, new
+            {
+                user.FirstName,
+                user.LastName,
+                user.Email
+            });
+
+            user.ID = id;
             return user;
         }
 
+        // Update an existing user using stored procedure
         public async Task<User> UpdateUser(int id, User user)
         {
-            var existingUser = await GetUserById(id);
-            if (existingUser == null) return null;
+            using var connection = new SqlConnection(_connectionString);
+            var query = "EXEC dbo.UpdateUser @Id, @FirstName, @LastName, @Email";
+            var rowsAffected = await connection.ExecuteAsync(query, new
+            {
+                Id = id,
+                user.FirstName,
+                user.LastName,
+                user.Email
+            });
 
-            existingUser.Name = user.Name;  // Access the Name property correctly
-            existingUser.Email = user.Email;
-            existingUser.Role = user.Role;
+            if (rowsAffected == 0)
+            {
+                return null; // No record was updated
+            }
 
-            _context.Users.Update(existingUser);
-            await _context.SaveChangesAsync();
-            return existingUser;
+            user.ID = id;
+            return user;
         }
 
+        // Delete a user using stored procedure
         public async Task<bool> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
-            {
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            return false;
+            using var connection = new SqlConnection(_connectionString);
+            var query = "EXEC dbo.DeleteUser @Id";
+            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
+
+            return rowsAffected > 0;
         }
     }
 }

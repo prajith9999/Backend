@@ -1,68 +1,67 @@
-﻿using vueproject_asp.Data;
-using vueproject_asp.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using vueproject_asp.Models;
 
-namespace vueproject_asp.Repositories
+namespace YourNamespace.Repositories
 {
     public class SocialMediaRepository
     {
-        private readonly AppDbContext _context;
+        private readonly List<SocialMedia> _socialMedias;
 
-        // Constructor for SocialMediaRepository
-        public SocialMediaRepository(AppDbContext context)
+        // Constructor initializes the list
+        public SocialMediaRepository()
         {
-            _context = context;
+            _socialMedias = new List<SocialMedia>();
         }
 
-        // Get all social media entries
-        public async Task<List<SocialMedia>> GetSocialMedia()
+        // Get all social media
+        public Task<List<SocialMedia>> GetSocialMediaAsync()
         {
-            return await _context.SocialMedias.ToListAsync();  // Correct DbSet name
+            return Task.FromResult(_socialMedias);
         }
 
-        // Get a single social media entry by its ID
-        public async Task<SocialMedia> GetSocialMediaById(string id)  // ID is a string in your model
+        // Get social media by ID
+        public Task<SocialMedia> GetSocialMediaByIdAsync(int id)
         {
-            return await _context.SocialMedias.FirstOrDefaultAsync(s => s.ID == id);  // Correct comparison for string ID
+            var socialMedia = _socialMedias.FirstOrDefault(s => s.ID == id);
+            return Task.FromResult(socialMedia);
         }
 
-        // Create a new social media entry
-        public async Task<SocialMedia> CreateSocialMedia(SocialMedia socialMedia)
+        // Create new social media
+        public Task<SocialMedia> CreateSocialMediaAsync(SocialMedia socialMedia)
         {
-            ArgumentNullException.ThrowIfNull(socialMedia);
-
-            await _context.SocialMedias.AddAsync(socialMedia);  // Correct DbSet name
-            await _context.SaveChangesAsync();
-            return socialMedia;
+            socialMedia.ID = _socialMedias.Count + 1; // Assigning ID based on list count
+            _socialMedias.Add(socialMedia);
+            return Task.FromResult(socialMedia);
         }
 
-        // Update an existing social media entry
-        public async Task<SocialMedia?> UpdateSocialMedia(string id, SocialMedia socialMedia)  // ID is a string
+        // Update existing social media by ID
+        public Task<SocialMedia> UpdateSocialMediaAsync(int id, SocialMedia socialMedia)
         {
-            var existingSocialMedia = await _context.SocialMedias.FindAsync(id);  // FindAsync with string ID
+            var existingSocialMedia = _socialMedias.FirstOrDefault(s => s.ID == id);
+            if (existingSocialMedia == null)
+            {
+                return Task.FromResult<SocialMedia>(null); // Return null if not found
+            }
 
-            if (existingSocialMedia == null) return null;
-
+            // Update properties
             existingSocialMedia.PlatformName = socialMedia.PlatformName;
+            existingSocialMedia.IconUrl = socialMedia.IconUrl;
             existingSocialMedia.ProfileUrl = socialMedia.ProfileUrl;
+            existingSocialMedia.Description = socialMedia.Description;
 
-            // Update other fields as needed
-            await _context.SaveChangesAsync();
-            return existingSocialMedia;
+            return Task.FromResult(existingSocialMedia);
         }
 
-        // Delete a social media entry
-        public async Task<bool> DeleteSocialMedia(string id)  // ID is a string
+        // Delete social media by ID
+        public Task<bool> DeleteSocialMediaAsync(int id)
         {
-            var socialMedia = await _context.SocialMedias.FindAsync(id);  // FindAsync with string ID
+            var socialMedia = _socialMedias.FirstOrDefault(s => s.ID == id);
+            if (socialMedia == null)
+            {
+                return Task.FromResult(false); // Return false if not found
+            }
 
-            if (socialMedia == null) return false;
-
-            _context.SocialMedias.Remove(socialMedia);  // Correct DbSet name
-            await _context.SaveChangesAsync();
-            return true;
+            _socialMedias.Remove(socialMedia);
+            return Task.FromResult(true);
         }
     }
 }

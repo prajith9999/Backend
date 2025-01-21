@@ -1,69 +1,91 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.Data.SqlClient;
+
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using vueproject_asp.Data;
+using Dapper;
 using vueproject_asp.Models;
 
 namespace vueproject_asp.Repositories
 {
     public class PageContentRepository
     {
-        private readonly AppDbContext _context;
+        private readonly string _connectionString;
 
-        // Constructor for PageContentRepository
-        public PageContentRepository(AppDbContext context)
+        // Constructor to inject the connection string
+        public PageContentRepository(string connectionString)
         {
-            _context = context;
+            _connectionString = connectionString;
         }
 
-        // Get all page content entries
+        // Get all PageContents
         public async Task<List<PageContent>> GetPageContents()
         {
-            return await _context.PageContents.ToListAsync();
+            using var connection = new SqlConnection(_connectionString);
+            var query = "SELECT * FROM PageContents";
+            var pageContents = await connection.QueryAsync<PageContent>(query);
+            return pageContents.AsList();
         }
 
-        // Get a single page content entry by its ID
+        // Get a single PageContent by ID
         public async Task<PageContent> GetPageContentById(int id)
         {
-            var pageContent = await _context.PageContents.FirstOrDefaultAsync(p => p.ID == id);
-            return pageContent;
+            using var connection = new SqlConnection(_connectionString);
+            var query = "SELECT * FROM PageContents WHERE ID = @Id";
+            return await connection.QueryFirstOrDefaultAsync<PageContent>(query, new { Id = id });
         }
 
-        // Insert a new page content entry
-        public async Task InsertPageContent(PageContent pageContent)
-        {
-            await _context.PageContents.AddAsync(pageContent);
-            await _context.SaveChangesAsync();
-        }
-
-        // Update an existing page content entry
-        public async Task UpdatePageContent(PageContent pageContent)
-        {
-            _context.PageContents.Update(pageContent);
-            await _context.SaveChangesAsync();
-        }
-
-        // Delete a page content entry by its ID
-        public async Task<bool> DeletePageContent(int id)
-        {
-            var pageContent = await _context.PageContents.FindAsync(id);
-            if (pageContent != null)
-            {
-                _context.PageContents.Remove(pageContent);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            return false;
-        }
-
-        // Create page content (can be renamed to create)
+        // Create a new PageContent
         public async Task<PageContent> CreatePageContent(PageContent pageContent)
         {
-            _context.PageContents.Add(pageContent);
-            await _context.SaveChangesAsync();
+            using var connection = new SqlConnection(_connectionString);
+            var query = @"
+                INSERT INTO PageContents (Title, Content, CreatedDate)
+                VALUES (@Title, @Content, @CreatedDate);
+                SELECT CAST(SCOPE_IDENTITY() as int)";
+            var id = await connection.QuerySingleAsync<int>(query, new
+            {
+                pageContent.Title,
+                pageContent.Content,
+                CreatedDate = DateTime.UtcNow
+            });
+
+            pageContent.ID = id;
             return pageContent;
+        }
+
+        // Update an existing PageContent
+        public async Task UpdatePageContent(PageContent pageContent)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            var query = @"
+                UPDATE PageContents
+                SET Title = @Title,
+                    Content = @Content,
+                    ModifiedDate = @ModifiedDate
+                WHERE ID = @Id";
+            var rowsAffected = await connection.ExecuteAsync(query, new
+            {
+                pageContent.Title,
+                pageContent.Content,
+                ModifiedDate = DateTime.UtcNow,
+                Id = pageContent.ID
+            });
+
+            if (rowsAffected == 0)
+            {
+                throw new KeyNotFoundException($"PageContent with ID {pageContent.ID} not found.");
+            }
+        }
+
+        // Delete a PageContent
+        public async Task<bool> DeletePageContent(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            var query = "DELETE FROM PageContents WHERE ID = @Id";
+            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
+
+            return rowsAffected > 0;
         }
     }
 }

@@ -6,6 +6,8 @@ namespace vueproject_asp.Models
 {
     public class PageContent
     {
+        internal object Content;
+
         [Key]
         public int ID { get; set; }
 

@@ -62,8 +62,7 @@ namespace vueproject_asp.Controllers
                 return BadRequest("ID mismatch.");
             }
 
-            await _repository.UpdatePageContent(pageContent);  // No need to check for returned value here
-
+            await _repository.UpdatePageContent(pageContent);
             return NoContent();
         }
 

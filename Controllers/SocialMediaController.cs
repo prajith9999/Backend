@@ -1,92 +1,56 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using vueproject_asp.Models;
-using vueproject_asp.Repositories;
+﻿using vueproject_asp.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace vueproject_asp.Controllers
+namespace vueproject_asp.Repositories
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class SocialMediaController : ControllerBase
+    public class SocialMediaRepository
     {
-        private readonly SocialMediaRepository _repository;
+        private readonly List<SocialMedia> _socialMedias = new List<SocialMedia>();
 
-        // Constructor for SocialMediaController
-        public SocialMediaController(SocialMediaRepository repository)
+        // Get all social media
+        public async Task<List<SocialMedia>> GetSocialMedia()
         {
-            _repository = repository;
+            return await Task.FromResult(_socialMedias);
         }
 
-        // HTTP GET: api/SocialMedia
-        [HttpGet]
-        public async Task<ActionResult<List<SocialMedia>>> GetSocialMedia()
+        // Get social media by ID
+        public async Task<SocialMedia> GetSocialMediaById(int id)
         {
-            var socialMedia = await _repository.GetSocialMedia();
-            return Ok(socialMedia);
+            var socialMedia = _socialMedias.FirstOrDefault(s => s.ID == id);
+            return await Task.FromResult(socialMedia);
         }
 
-        // HTTP GET: api/SocialMedia/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<SocialMedia>> GetSocialMedia(int id)
+        // Create social media
+        public async Task<SocialMedia> CreateSocialMedia(SocialMedia socialMedia)
         {
-            // Convert the integer id to string before passing to repository
-            var social = await _repository.GetSocialMediaById(id.ToString());
-
-            if (social == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(social);
+            socialMedia.ID = _socialMedias.Count + 1;
+            _socialMedias.Add(socialMedia);
+            return await Task.FromResult(socialMedia);
         }
 
-        // HTTP POST: api/SocialMedia
-        [HttpPost]
-        public async Task<ActionResult<SocialMedia>> CreateSocialMedia(SocialMedia socialMedia)
+        // Update social media
+        public async Task<SocialMedia> UpdateSocialMedia(int id, SocialMedia socialMedia)
         {
-            if (socialMedia == null)
-            {
-                return BadRequest();
-            }
+            var existingSocialMedia = _socialMedias.FirstOrDefault(s => s.ID == id);
+            if (existingSocialMedia == null) return null;
 
-            var createdSocialMedia = await _repository.CreateSocialMedia(socialMedia);
-            return CreatedAtAction(nameof(GetSocialMedia), new { id = createdSocialMedia.ID }, createdSocialMedia);
+            existingSocialMedia.Name = socialMedia.Name;
+            existingSocialMedia.URL = socialMedia.URL;
+            existingSocialMedia.Description = socialMedia.Description;
+
+            return await Task.FromResult(existingSocialMedia);
         }
 
-        // HTTP PUT: api/SocialMedia/{id}
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateSocialMedia(int id, SocialMedia socialMedia)
+        // Delete social media
+        public async Task<bool> DeleteSocialMedia(int id)
         {
-            // Convert the integer id to string before passing to repository
-            if (id.ToString() != socialMedia.ID)
-            {
-                return BadRequest();
-            }
+            var socialMedia = _socialMedias.FirstOrDefault(s => s.ID == id);
+            if (socialMedia == null) return false;
 
-            var updatedSocialMedia = await _repository.UpdateSocialMedia(id.ToString(), socialMedia);
-
-            if (updatedSocialMedia == null)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
-        }
-
-        // HTTP DELETE: api/SocialMedia/{id}
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteSocialMedia(int id)
-        {
-            // Convert the integer id to string before passing to repository
-            var result = await _repository.DeleteSocialMedia(id.ToString());
-
-            if (!result)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
+            _socialMedias.Remove(socialMedia);
+            return await Task.FromResult(true);
         }
     }
 }

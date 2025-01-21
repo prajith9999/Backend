@@ -1,17 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using vueproject_asp.Data;
 using vueproject_asp.Models;
+using vueproject_asp.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using vueproject_asp.Repositories;
 
 namespace vueproject_asp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController(UserRepository repository) : ControllerBase
+    public class UserController : ControllerBase
     {
-        private readonly UserRepository _repository = repository;
+        private readonly UserRepository _repository;
+
+        // Constructor for UserController
+        public UserController(UserRepository repository)
+        {
+            _repository = repository;
+        }
 
         // HTTP GET: api/User
         [HttpGet]

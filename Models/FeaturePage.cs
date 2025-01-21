@@ -5,6 +5,8 @@ namespace vueproject_asp.Models
 {
     public class FeaturePage
     {
+        internal readonly object Description;
+
         [Key]
         public int ID { get; set; }
 

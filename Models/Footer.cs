@@ -28,5 +28,6 @@ namespace vueproject_asp.Models
         public int? DeletedBy { get; set; }
 
         public DateTime? DeletedDate { get; set; }
+        public object Content { get; internal set; }
     }
 }
