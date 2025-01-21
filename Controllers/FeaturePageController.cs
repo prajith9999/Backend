@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using vueproject_asp.Models;
 using vueproject_asp.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace vueproject_asp.Controllers
 {
@@ -30,14 +30,15 @@ namespace vueproject_asp.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<FeaturePage>> GetFeaturePage(int id)
         {
-            var featurePage = await _repository.GetFeaturePageById(id);
-
-            if (featurePage == null)
+            try
             {
-                return NotFound();
+                var featurePage = await _repository.GetFeaturePageById(id);
+                return Ok(featurePage);
             }
-
-            return Ok(featurePage);
+            catch (KeyNotFoundException)
+            {
+                return NotFound();  // Explicitly return NotFound if not found
+            }
         }
 
         // HTTP POST: api/FeaturePage
@@ -46,7 +47,7 @@ namespace vueproject_asp.Controllers
         {
             if (featurePage == null)
             {
-                return BadRequest();
+                return BadRequest();  // Return BadRequest if invalid featurePage
             }
 
             var createdFeaturePage = await _repository.CreateFeaturePage(featurePage);
@@ -59,12 +60,18 @@ namespace vueproject_asp.Controllers
         {
             if (id != featurePage.ID)
             {
-                return BadRequest();
+                return BadRequest();  // Return BadRequest if IDs do not match
             }
 
-            await _repository.UpdateFeaturePage(featurePage); // Directly call repository without variable assignment
-
-            return NoContent();
+            try
+            {
+                await _repository.UpdateFeaturePage(featurePage); // Directly call repository without variable assignment
+                return NoContent();  // Return NoContent (HTTP 204) if the update was successful
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();  // Return NotFound if the FeaturePage with the given ID is not found
+            }
         }
 
         // HTTP DELETE: api/FeaturePage/{id}
@@ -75,10 +82,10 @@ namespace vueproject_asp.Controllers
 
             if (!result)
             {
-                return NotFound();
+                return NotFound();  // Return NotFound if the FeaturePage with the given ID is not found
             }
 
-            return NoContent();
+            return NoContent();  // Return NoContent if the deletion was successful
         }
     }
 }

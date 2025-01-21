@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("vueproject-asp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ea310387c352639b1b5039475258ccda3184d014")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1922e0c6d4f20e8ef25d35445223d477a3eb853d")]
 [assembly: System.Reflection.AssemblyProductAttribute("vueproject-asp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("vueproject-asp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

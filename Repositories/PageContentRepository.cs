@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
-
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using vueproject_asp.Models;
 
 namespace vueproject_asp.Repositories
@@ -22,9 +21,9 @@ namespace vueproject_asp.Repositories
         public async Task<List<PageContent>> GetPageContents()
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM PageContents";
-            var pageContents = await connection.QueryAsync<PageContent>(query);
-            return pageContents.AsList();
+            var query = "SELECT * FROM PageContent";
+            var pageContent = await connection.QueryAsync<PageContent>(query);
+            return pageContent.AsList();
         }
 
         // Get a single PageContent by ID
@@ -40,12 +39,14 @@ namespace vueproject_asp.Repositories
         {
             using var connection = new SqlConnection(_connectionString);
             var query = @"
-                INSERT INTO PageContents (Title, Content, CreatedDate)
-                VALUES (@Title, @Content, @CreatedDate);
+                INSERT INTO PageContents (Title, HighLights, OrderNumber, Content, CreatedDate)
+                VALUES (@Title, @HighLights, @OrderNumber, @Content, @CreatedDate);
                 SELECT CAST(SCOPE_IDENTITY() as int)";
             var id = await connection.QuerySingleAsync<int>(query, new
             {
                 pageContent.Title,
+                pageContent.HighLights,
+                pageContent.OrderNumber,
                 pageContent.Content,
                 CreatedDate = DateTime.UtcNow
             });
@@ -61,12 +62,16 @@ namespace vueproject_asp.Repositories
             var query = @"
                 UPDATE PageContents
                 SET Title = @Title,
+                    HighLights = @HighLights,
+                    OrderNumber = @OrderNumber,
                     Content = @Content,
                     ModifiedDate = @ModifiedDate
                 WHERE ID = @Id";
             var rowsAffected = await connection.ExecuteAsync(query, new
             {
                 pageContent.Title,
+                pageContent.HighLights,
+                pageContent.OrderNumber,
                 pageContent.Content,
                 ModifiedDate = DateTime.UtcNow,
                 Id = pageContent.ID
@@ -86,6 +91,11 @@ namespace vueproject_asp.Repositories
             var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
 
             return rowsAffected > 0;
+        }
+
+        internal async Task GetPageContent()
+        {
+            throw new NotImplementedException();
         }
     }
 }

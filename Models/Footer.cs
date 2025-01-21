@@ -15,7 +15,7 @@ namespace vueproject_asp.Models
         [MaxLength(512)]
         public string FooterTitle { get; set; }
 
-        public int? FooterDescription { get; set; }
+        public string FooterDescription { get; set; }
 
         public int? CreatedBy { get; set; }
 
@@ -28,6 +28,7 @@ namespace vueproject_asp.Models
         public int? DeletedBy { get; set; }
 
         public DateTime? DeletedDate { get; set; }
-        public object Content { get; internal set; }
+
+        public string Content { get; set; }
     }
 }

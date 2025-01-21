@@ -61,7 +61,7 @@ namespace vueproject_asp.Repositories
                 VALUES (@Title, @TitleDescription, @OrderNumber, @CreatedBy, @CreatedDate);
                 SELECT CAST(SCOPE_IDENTITY() as int)";
             var id = await connection.QuerySingleAsync<int>(query, body);
-            body.Id = id;
+            body.ID = id;  // Use the primary key for the ID field
             return body; // Return the created body with its ID populated
         }
 

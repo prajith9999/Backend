@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace vueproject_asp.Models
@@ -9,8 +8,8 @@ namespace vueproject_asp.Models
     {
         [Key]
         [JsonPropertyName("id")]
-        public int ID { get; set; }  // Keep only this property as 'id'
-        public int Id { get; internal set; }
+        public int ID { get; set; }  // The primary key mapped as 'id' in JSON
+
         [Required]
         [MaxLength(50)]
         [JsonPropertyName("title")]

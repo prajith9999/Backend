@@ -1,60 +1,114 @@
-﻿
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using vueproject_asp.Models;
+using vueproject_asp.Repositories;
 
-namespace vueproject_asp.Models
+namespace vueproject_asp.Controllers
 {
-    public class Bodyy
+    [Route("api/[controller]")]
+    [ApiController]
+    public class BodyController : ControllerBase
     {
-        // The 'ID' property is mapped to 'id' in JSON for consistency
-        [Key]
-        [JsonPropertyName("id")]
-        public int ID { get; set; }
+        private readonly BodyRepository _bodyRepository;
 
-        // The internal 'Id' property is mapped to 'id' in JSON to avoid conflicts
-        [JsonPropertyName("id")]
-        public int Id { get; internal set; }
+        public BodyController(BodyRepository bodyRepository)
+        {
+            _bodyRepository = bodyRepository;
+        }
 
-        // 'Title' property is mapped to 'title' in JSON
-        [Required]
-        [MaxLength(50)]
-        [JsonPropertyName("title")]
-        public string Title { get; set; }
+        // GET: api/Body
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Body>>> GetBodies()
+        {
+            try
+            {
+                var bodies = await _bodyRepository.GetBodies();
+                return Ok(bodies);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
-        // 'TitleDescription' property is mapped to 'title_description' in JSON
-        [MaxLength(256)]
-        [JsonPropertyName("title_description")]
-        public string TitleDescription { get; set; }
+        // GET: api/Body/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Body>> GetBody(int id)
+        {
+            try
+            {
+                var body = await _bodyRepository.GetBodyById(id);
 
-        // 'OrderNumber' property is mapped to 'order_number' in JSON
-        [Required]
-        [JsonPropertyName("order_number")]
-        public int OrderNumber { get; set; }
+                if (body == null)
+                {
+                    return NotFound();
+                }
 
-        // 'CreatedBy' property is mapped to 'created_by' in JSON
-        [JsonPropertyName("created_by")]
-        public int? CreatedBy { get; set; }
+                return Ok(body);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
-        // 'CreatedDate' property is mapped to 'created_date' in JSON
-        [JsonPropertyName("created_date")]
-        public DateTime? CreatedDate { get; set; }
+        // POST: api/Body
+        [HttpPost]
+        public async Task<ActionResult<Body>> PostBody(Body body)
+        {
+            try
+            {
+                var createdBody = await _bodyRepository.InsertBody(body);
+                return CreatedAtAction(nameof(GetBody), new { id = createdBody.ID }, createdBody);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
-        // 'ModifiedBy' property is mapped to 'modified_by' in JSON
-        [JsonPropertyName("modified_by")]
-        public int? ModifiedBy { get; set; }
+        // PUT: api/Body/5
+        [HttpPut("{id}")]
+        public async Task<ActionResult<Body>> PutBody(int id, Body body)
+        {
+            try
+            {
+                var updatedBody = await _bodyRepository.UpdateBody(id, body);
 
-        // 'ModifiedDate' property is mapped to 'modified_date' in JSON
-        [JsonPropertyName("modified_date")]
-        public DateTime? ModifiedDate { get; set; }
+                if (updatedBody == null)
+                {
+                    return NotFound();
+                }
 
-        // 'DeletedBy' property is mapped to 'deleted_by' in JSON
-        [JsonPropertyName("deleted_by")]
-        public int? DeletedBy { get; set; }
+                return Ok(updatedBody);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
-        // 'DeletedDate' property is mapped to 'deleted_date' in JSON
-        [JsonPropertyName("deleted_date")]
-        public DateTime? DeletedDate { get; set; }
+        // DELETE: api/Body/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteBody(int id)
+        {
+            try
+            {
+                var isDeleted = await _bodyRepository.DeleteBody(id);
+
+                if (!isDeleted)
+                {
+                    return NotFound();
+                }
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

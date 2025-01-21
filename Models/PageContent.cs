@@ -1,13 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace vueproject_asp.Models
 {
     public class PageContent
     {
-        internal object Content;
-
         [Key]
         public int ID { get; set; }
 
@@ -33,5 +30,7 @@ namespace vueproject_asp.Models
         public int? DeletedBy { get; set; }
 
         public DateTime? DeletedDate { get; set; }
+
+        public string Content { get; set; } // Ensure Content is defined as a string type
     }
 }

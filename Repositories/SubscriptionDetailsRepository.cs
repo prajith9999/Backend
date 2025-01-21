@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Dapper;
 using Microsoft.Data.SqlClient;
-
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Dapper;
 using vueproject_asp.Models;
 
 namespace vueproject_asp.Repositories

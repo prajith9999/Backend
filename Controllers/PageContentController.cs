@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using vueproject_asp.Models;
 using vueproject_asp.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace vueproject_asp.Controllers
 {
@@ -20,10 +20,10 @@ namespace vueproject_asp.Controllers
 
         // HTTP GET: api/PageContent
         [HttpGet]
-        public async Task<ActionResult<List<PageContent>>> GetPageContents()
+        public async Task<ActionResult<List<PageContent>>> GetPageContent()
         {
-            var pageContents = await _repository.GetPageContents();
-            return Ok(pageContents);
+            var pageContents = await _repository.GetPageContents(); // Ensure GetPageContents() method is correctly named
+            return Ok(pageContents); // Use the existing Ok() method to return success
         }
 
         // HTTP GET: api/PageContent/{id}
@@ -34,10 +34,10 @@ namespace vueproject_asp.Controllers
 
             if (pageContent == null)
             {
-                return NotFound();
+                return NotFound(); // Return 404 if content not found
             }
 
-            return Ok(pageContent);
+            return Ok(pageContent); // Return the page content with status 200
         }
 
         // HTTP POST: api/PageContent
@@ -63,7 +63,7 @@ namespace vueproject_asp.Controllers
             }
 
             await _repository.UpdatePageContent(pageContent);
-            return NoContent();
+            return NoContent(); // Return status 204 for successful update
         }
 
         // HTTP DELETE: api/PageContent/{id}
@@ -77,7 +77,7 @@ namespace vueproject_asp.Controllers
                 return NotFound("Page content not found.");
             }
 
-            return NoContent();
+            return NoContent(); // Return status 204 for successful deletion
         }
     }
 }

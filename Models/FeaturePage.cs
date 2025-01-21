@@ -5,8 +5,6 @@ namespace vueproject_asp.Models
 {
     public class FeaturePage
     {
-        internal readonly object Description;
-
         [Key]
         public int ID { get; set; }
 
@@ -32,5 +30,7 @@ namespace vueproject_asp.Models
         public int? DeletedBy { get; set; }
 
         public DateTime? DeletedDate { get; set; }
+
+        public string Description { get; set; }
     }
 }

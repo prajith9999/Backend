@@ -13,19 +13,14 @@ namespace vueproject_asp.Repositories
         // Constructor to inject the connection string
         public SubscriptionRepository(string connectionString)
         {
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new ArgumentNullException(nameof(connectionString), "Connection string cannot be null or empty.");
-            }
-
-            _connectionString = connectionString; // Initialize the connection string
+            _connectionString = connectionString;
         }
 
         // Get all subscriptions
-        public async Task<List<Subscription>> GetSubscriptions()
+        public async Task<List<Subscription>> GetSubscription()
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "EXEC dbo.GetSubscriptions";  // Execute stored procedure
+            var query = "SELECT * FROM dbo.Subscription";  // Simple SELECT query
             var subscriptions = await connection.QueryAsync<Subscription>(query);
             return subscriptions.AsList();
         }
@@ -34,7 +29,7 @@ namespace vueproject_asp.Repositories
         public async Task<Subscription> GetSubscriptionById(int id)
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "EXEC dbo.GetSubscriptionById @Id";  // Execute stored procedure with parameters
+            var query = "SELECT * FROM dbo.Subscription WHERE ID = @Id";  // Query by ID
             var subscription = await connection.QueryFirstOrDefaultAsync<Subscription>(query, new { Id = id });
             return subscription;  // Return the subscription or null if not found
         }
@@ -44,11 +39,9 @@ namespace vueproject_asp.Repositories
         {
             using var connection = new SqlConnection(_connectionString);
             var query = @"
-                EXEC dbo.CreateSubscription 
-                    @Name = @Name, 
-                    @StartDate = @StartDate, 
-                    @EndDate = @EndDate, 
-                    @Price = @Price"; // Call the stored procedure
+                INSERT INTO dbo.Subscription (Name, StartDate, EndDate, Price)
+                VALUES (@Name, @StartDate, @EndDate, @Price);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);";  // Insert and return the ID
             var id = await connection.QuerySingleAsync<int>(query, new
             {
                 subscription.Name,
@@ -65,12 +58,9 @@ namespace vueproject_asp.Repositories
         {
             using var connection = new SqlConnection(_connectionString);
             var query = @"
-                EXEC dbo.UpdateSubscription 
-                    @Id = @Id, 
-                    @Name = @Name, 
-                    @StartDate = @StartDate, 
-                    @EndDate = @EndDate,
-                    @Price = @Price"; // Call the stored procedure
+                UPDATE dbo.Subscription
+                SET Name = @Name, StartDate = @StartDate, EndDate = @EndDate, Price = @Price
+                WHERE ID = @Id";  // Update query
             await connection.ExecuteAsync(query, new
             {
                 subscription.ID,
@@ -85,7 +75,7 @@ namespace vueproject_asp.Repositories
         public async Task<bool> DeleteSubscription(int id)
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "EXEC dbo.DeleteSubscription @Id";  // Call the stored procedure
+            var query = "DELETE FROM dbo.Subscription WHERE ID = @Id";  // Delete query
             var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
             return rowsAffected > 0;  // Return true if rows are affected
         }

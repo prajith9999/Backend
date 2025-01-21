@@ -12,13 +12,11 @@ namespace vueproject_asp.Controllers
     {
         private readonly UserRepository _repository;
 
-        // Constructor for UserController
         public UserController(UserRepository repository)
         {
             _repository = repository;
         }
 
-        // HTTP GET: api/User
         [HttpGet]
         public async Task<ActionResult<List<User>>> GetUsers()
         {
@@ -26,7 +24,6 @@ namespace vueproject_asp.Controllers
             return Ok(users);
         }
 
-        // HTTP GET: api/User/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -40,7 +37,6 @@ namespace vueproject_asp.Controllers
             return Ok(user);
         }
 
-        // HTTP POST: api/User
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser(User user)
         {
@@ -53,7 +49,6 @@ namespace vueproject_asp.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.ID }, createdUser);
         }
 
-        // HTTP PUT: api/User/{id}
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateUser(int id, User user)
         {
@@ -72,7 +67,6 @@ namespace vueproject_asp.Controllers
             return NoContent();
         }
 
-        // HTTP DELETE: api/User/{id}
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteUser(int id)
         {

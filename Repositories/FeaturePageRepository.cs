@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
-
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using vueproject_asp.Models;
 
 namespace vueproject_asp.Repositories
@@ -15,14 +14,14 @@ namespace vueproject_asp.Repositories
         // Constructor to inject the connection string
         public FeaturePageRepository(string connectionString)
         {
-            _connectionString = connectionString;
+            _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString), "Connection string cannot be null.");
         }
 
         // Get all FeaturePages
         public async Task<List<FeaturePage>> GetFeaturePages()
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM FeaturePages";
+            var query = "SELECT * FROM FeaturePage"; // Ensure the table name matches your database
             var featurePages = await connection.QueryAsync<FeaturePage>(query);
             return featurePages.AsList();
         }
@@ -31,7 +30,7 @@ namespace vueproject_asp.Repositories
         public async Task<FeaturePage> GetFeaturePageById(int id)
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM FeaturePages WHERE ID = @Id";
+            var query = "SELECT * FROM FeaturePage WHERE ID = @Id"; // Ensure the table name matches your database
             var featurePage = await connection.QueryFirstOrDefaultAsync<FeaturePage>(query, new { Id = id });
 
             if (featurePage == null)
@@ -52,14 +51,16 @@ namespace vueproject_asp.Repositories
 
             using var connection = new SqlConnection(_connectionString);
             var query = @"
-                INSERT INTO FeaturePages (Title, Description, CreatedDate)
-                VALUES (@Title, @Description, @CreatedDate);
-                SELECT CAST(SCOPE_IDENTITY() as int)";
+                INSERT INTO FeaturePage (Title, HeadingDescription, OrderNumber, CreatedDate, Description)
+                VALUES (@Title, @HeadingDescription, @OrderNumber, @CreatedDate, @Description);
+                SELECT CAST(SCOPE_IDENTITY() as int)"; // Ensure the table name matches your database
             var id = await connection.QuerySingleAsync<int>(query, new
             {
                 featurePage.Title,
-                featurePage.Description,
-                CreatedDate = DateTime.UtcNow
+                featurePage.HeadingDescription,
+                featurePage.OrderNumber,
+                CreatedDate = DateTime.UtcNow,
+                featurePage.Description
             });
 
             featurePage.ID = id;
@@ -76,14 +77,18 @@ namespace vueproject_asp.Repositories
 
             using var connection = new SqlConnection(_connectionString);
             var query = @"
-                UPDATE FeaturePages
+                UPDATE FeaturePage
                 SET Title = @Title,
+                    HeadingDescription = @HeadingDescription,
+                    OrderNumber = @OrderNumber,
                     Description = @Description,
                     ModifiedDate = @ModifiedDate
-                WHERE ID = @Id";
+                WHERE ID = @Id"; // Ensure the table name matches your database
             var rowsAffected = await connection.ExecuteAsync(query, new
             {
                 featurePage.Title,
+                featurePage.HeadingDescription,
+                featurePage.OrderNumber,
                 featurePage.Description,
                 ModifiedDate = DateTime.UtcNow,
                 Id = featurePage.ID
@@ -99,7 +104,7 @@ namespace vueproject_asp.Repositories
         public async Task<bool> DeleteFeaturePage(int id)
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "DELETE FROM FeaturePages WHERE ID = @Id";
+            var query = "DELETE FROM FeaturePage WHERE ID = @Id"; // Ensure the table name matches your database
             var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
 
             return rowsAffected > 0; // Return true if deletion was successful

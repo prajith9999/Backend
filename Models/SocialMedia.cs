@@ -1,22 +1,21 @@
-﻿
+﻿using System;
+
 namespace vueproject_asp.Models
 {
     public class SocialMedia
     {
         public int ID { get; set; }
         public string Name { get; set; }
-        public string URL { get; set; }
-        public string Description { get; set; }
-        public object PlatformName { get; internal set; }
-        public object IconUrl { get; internal set; }
-        public object ProfileUrl { get; internal set; }
+        public string URL { get; set; }  // Keep only this one
 
-        public SocialMedia(int id, string name, string url, string description)
+        // Constructor to initialize SocialMedia object
+        public SocialMedia(int id, string name, string url)
         {
             ID = id;
             Name = name ?? throw new ArgumentNullException(nameof(name));
             URL = url ?? throw new ArgumentNullException(nameof(url));
-            Description = description ?? throw new ArgumentNullException(nameof(description));
         }
+
+        public SocialMedia() { } // Parameterless constructor for flexibility
     }
 }

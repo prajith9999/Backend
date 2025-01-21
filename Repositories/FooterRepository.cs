@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
-
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using vueproject_asp.Models;
 
 namespace vueproject_asp.Repositories
@@ -18,20 +17,20 @@ namespace vueproject_asp.Repositories
             _connectionString = connectionString;
         }
 
-        // Get all Footers
-        public async Task<List<Footer>> GetFooters()
+        // Get all Footer
+        public async Task<List<Footer>> GetFooter()
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM Footers";
-            var footers = await connection.QueryAsync<Footer>(query);
-            return footers.AsList();
+            var query = "SELECT * FROM dbo.Footer"; // Using dbo.Footer
+            var footer = await connection.QueryAsync<Footer>(query);
+            return footer.AsList();
         }
 
         // Get a single Footer by ID
         public async Task<Footer> GetFooterById(int id)
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM Footers WHERE ID = @Id";
+            var query = "SELECT * FROM dbo.Footer WHERE ID = @Id"; // Using dbo.Footer
             var footer = await connection.QueryFirstOrDefaultAsync<Footer>(query, new { Id = id });
 
             if (footer == null)
@@ -43,7 +42,7 @@ namespace vueproject_asp.Repositories
         }
 
         // Create a new Footer
-        public async Task<Footer> CreateFooter(Footer footer, Task<int> task)
+        public async Task<Footer> CreateFooter(Footer footer)
         {
             if (footer == null)
             {
@@ -52,15 +51,18 @@ namespace vueproject_asp.Repositories
 
             using var connection = new SqlConnection(_connectionString);
             var query = @"
-                INSERT INTO Footers (Content, CreatedDate)
-                VALUES (@Content, @CreatedDate);
-                SELECT CAST(SCOPE_IDENTITY() as int)";
-            Task<int> task1 = connection.QuerySingleAsync<int>(query, new
+                INSERT INTO dbo.Footer (PageId, FooterTitle, FooterDescription, Content, CreatedDate)
+                VALUES (@PageId, @FooterTitle, @FooterDescription, @Content, @CreatedDate);
+                SELECT CAST(SCOPE_IDENTITY() as int)"; // Using dbo.Footer
+            var id = await connection.QuerySingleAsync<int>(query, new
             {
+                footer.PageId,
+                footer.FooterTitle,
+                footer.FooterDescription,
                 footer.Content,
                 CreatedDate = DateTime.UtcNow
             });
-            var id = await task1;
+
             footer.ID = id;
             return footer;
         }
@@ -75,12 +77,18 @@ namespace vueproject_asp.Repositories
 
             using var connection = new SqlConnection(_connectionString);
             var query = @"
-                UPDATE Footers
-                SET Content = @Content,
+                UPDATE dbo.Footer
+                SET PageId = @PageId,
+                    FooterTitle = @FooterTitle,
+                    FooterDescription = @FooterDescription,
+                    Content = @Content,
                     ModifiedDate = @ModifiedDate
-                WHERE ID = @Id";
+                WHERE ID = @Id"; // Using dbo.Footer
             var rowsAffected = await connection.ExecuteAsync(query, new
             {
+                footer.PageId,
+                footer.FooterTitle,
+                footer.FooterDescription,
                 footer.Content,
                 ModifiedDate = DateTime.UtcNow,
                 Id = footer.ID
@@ -96,18 +104,13 @@ namespace vueproject_asp.Repositories
         public async Task DeleteFooter(int id)
         {
             using var connection = new SqlConnection(_connectionString);
-            var query = "DELETE FROM Footers WHERE ID = @Id";
+            var query = "DELETE FROM dbo.Footer WHERE ID = @Id"; // Using dbo.Footer
             var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
 
             if (rowsAffected == 0)
             {
                 throw new KeyNotFoundException($"Footer with ID {id} not found.");
             }
-        }
-
-        internal async Task CreateFooter(Footer footer, object task)
-        {
-            throw new NotImplementedException();
         }
     }
 }

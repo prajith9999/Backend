@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using vueproject_asp.Models;
 using vueproject_asp.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace vueproject_asp.Controllers
 {
@@ -11,7 +11,6 @@ namespace vueproject_asp.Controllers
     public class FooterController : ControllerBase
     {
         private readonly FooterRepository _repository;
-        private readonly Task<int> task;
 
         // Constructor for FooterController
         public FooterController(FooterRepository repository)
@@ -23,8 +22,8 @@ namespace vueproject_asp.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Footer>>> GetFooters()
         {
-            var footers = await _repository.GetFooters();
-            return Ok(footers);
+            var footer = await _repository.GetFooter();
+            return Ok(footer);
         }
 
         // HTTP GET: api/Footer/{id}
@@ -50,8 +49,7 @@ namespace vueproject_asp.Controllers
                 return BadRequest();
             }
 
-            var createdFooter = await _repository.CreateFooter(footer,task
-);
+            var createdFooter = await _repository.CreateFooter(footer);
             return CreatedAtAction(nameof(GetFooter), new { id = createdFooter.ID }, createdFooter);
         }
 

@@ -1,4 +1,6 @@
-﻿namespace vueproject_asp.Models
+﻿using System;
+
+namespace vueproject_asp.Models
 {
     public class Subscription
     {

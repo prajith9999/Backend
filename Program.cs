@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using vueproject_asp.Data;
 using vueproject_asp.Repositories;
-using Microsoft.Data.SqlClient;
 
 namespace vueproject_asp
 {
@@ -13,28 +11,39 @@ namespace vueproject_asp
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add CORS policy
+            // Add CORS policy to allow all origins, methods, and headers
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             });
 
-            // Register the connection string from appsettings.json into DI container
-            builder.Services.AddSingleton(sp =>
+            // Register connection string from appsettings.json into DI container (scoped for per-request use)
+            builder.Services.AddScoped(sp =>
                 builder.Configuration.GetConnectionString("DefaultConnection"));
 
-            // Register DapperDbContext for handling SQL connection, make it scoped
-            builder.Services.AddScoped<DapperDbContext>();
-
             // Register repositories that use Dapper for data access
-            builder.Services.AddScoped<BodyRepository>();    // Add Body repository
-            builder.Services.AddScoped<UserRepository>();    // Add User repository
-            builder.Services.AddScoped<FaqRepository>();     // Add other repositories as necessary
+            builder.Services.AddScoped<BodyRepository>();    // Body repository
+            builder.Services.AddScoped<UserRepository>();    // User repository
+            builder.Services.AddScoped<FaqRepository>();     // Faq repository
+            builder.Services.AddScoped<FeaturePageRepository>();  // FeaturePage repository
+            builder.Services.AddScoped<FooterRepository>();   // Footer repository
+
+            // Register SocialMediaRepository with connection string
+            builder.Services.AddScoped<SocialMediaRepository>(provider =>
+                new SocialMediaRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Register PageContentRepository with connection string
+            builder.Services.AddScoped<PageContentRepository>(provider =>
+                new PageContentRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Register SubscriptionRepository with connection string
+            builder.Services.AddScoped<SubscriptionRepository>(provider =>
+                new SubscriptionRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // Add controllers for API
             builder.Services.AddControllers();
 
-            // Swagger for API documentation (Optional)
+            // Swagger for API documentation (Optional, can be removed in production)
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -43,7 +52,7 @@ namespace vueproject_asp
             // Apply CORS policy globally
             app.UseCors("AllowAll");
 
-            // Configure the HTTP request pipeline.
+            // Configure the HTTP request pipeline
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();  // Enable Swagger in development
