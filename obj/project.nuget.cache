@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "wHedHyBCRmo=",
+  "dgSpecHash": "IIoL9A9qwOM=",
   "success": true,
-  "projectFilePath": "C:\\Users\\LENOVO\\source\\repos\\vueproject-asp\\vueproject-asp.csproj",
+  "projectFilePath": "C:\\Users\\LENOVO\\source\\repos\\vueproject-asp\\VueProject-Asp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\LENOVO\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\LENOVO\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",

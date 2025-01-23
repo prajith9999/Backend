@@ -279,4 +279,4 @@ namespace vueproject_asp.Repositories
         // Generic method to insert a new record
         private async Task<T> Insert<T>(string tableName, T entity)
         {
-            var columns = GetColumns(
+            var columns = GetColumns(); } }

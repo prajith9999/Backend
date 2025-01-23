@@ -177,9 +177,34 @@ namespace vueproject_asp.Controllers
         }
 
         [HttpPost("faq")]
-        public async Task<ActionResult<Faq>> PostFAQ(Faq faq)
+        public async Task<ActionResult<Faq>> PostFAQ(Faq faq, Faq faq)
         {
-            var createdFAQ = await _appHandler.InsertFAQ(faq: Faq);
+            if (faq is null)
+            {
+                throw new ArgumentNullException(nameof(faq));
+            }
+
+            if (faq is null)
+            {
+                throw new ArgumentNullException(nameof(faq));
+            }
+
+            if (faq is null)
+            {
+                throw new ArgumentNullException(nameof(faq));
+            }
+
+            if (faq is null)
+            {
+                throw new ArgumentNullException(nameof(faq));
+            }
+
+            if (faq is null)
+            {
+                throw new ArgumentNullException(nameof(faq));
+            }
+
+            var createdFAQ = await _appHandler.InsertFAQ(faq: faq);
             return CreatedAtAction(nameof(GetFAQ), new { id = createdFAQ.ID }, createdFAQ);
         }
 
