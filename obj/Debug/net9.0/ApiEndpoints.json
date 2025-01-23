@@ -1,5 +1,124 @@
 [
   {
+    "ContainingType": "vueproject_asp.Controllers.BodyController",
+    "Method": "GetBodies",
+    "RelativePath": "api/Body",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[vueproject_asp.Models.Body, vueproject-asp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "vueproject_asp.Controllers.BodyController",
+    "Method": "PostBody",
+    "RelativePath": "api/Body",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "body",
+        "Type": "vueproject_asp.Models.Body",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "vueproject_asp.Models.Body",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "vueproject_asp.Controllers.BodyController",
+    "Method": "GetBody",
+    "RelativePath": "api/Body/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "vueproject_asp.Models.Body",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "vueproject_asp.Controllers.BodyController",
+    "Method": "PutBody",
+    "RelativePath": "api/Body/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "body",
+        "Type": "vueproject_asp.Models.Body",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "vueproject_asp.Models.Body",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "vueproject_asp.Controllers.BodyController",
+    "Method": "DeleteBody",
+    "RelativePath": "api/Body/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "vueproject_asp.Controllers.FaqController",
     "Method": "GetFaqs",
     "RelativePath": "api/Faq",
@@ -328,7 +447,7 @@
   },
   {
     "ContainingType": "vueproject_asp.Controllers.PageContentController",
-    "Method": "GetPageContents",
+    "Method": "GetPageContent",
     "RelativePath": "api/PageContent",
     "HttpMethod": "GET",
     "IsController": true,
@@ -445,7 +564,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[SocialMedia, vueproject-asp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[vueproject_asp.Models.SocialMedia, vueproject-asp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -465,13 +584,13 @@
     "Parameters": [
       {
         "Name": "socialMedia",
-        "Type": "SocialMedia",
+        "Type": "vueproject_asp.Models.SocialMedia",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "SocialMedia",
+        "Type": "vueproject_asp.Models.SocialMedia",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -483,7 +602,7 @@
   },
   {
     "ContainingType": "vueproject_asp.Controllers.SocialMediaController",
-    "Method": "GetSocialMedia",
+    "Method": "GetSocialMediaById",
     "RelativePath": "api/SocialMedia/{id}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -497,7 +616,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "SocialMedia",
+        "Type": "vueproject_asp.Models.SocialMedia",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -522,7 +641,7 @@
       },
       {
         "Name": "socialMedia",
-        "Type": "SocialMedia",
+        "Type": "vueproject_asp.Models.SocialMedia",
         "IsRequired": true
       }
     ],
@@ -546,7 +665,7 @@
   },
   {
     "ContainingType": "vueproject_asp.Controllers.SubscriptionController",
-    "Method": "GetSubscriptions",
+    "Method": "GetSubscription",
     "RelativePath": "api/Subscription",
     "HttpMethod": "GET",
     "IsController": true,
@@ -744,7 +863,17 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "vueproject_asp.Models.SubscriptionDetails",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "vueproject_asp.Controllers.SubscriptionDetailsController",

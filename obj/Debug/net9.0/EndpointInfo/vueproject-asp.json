@@ -5,6 +5,208 @@
     "version": "1.0"
   },
   "paths": {
+    "/api/Body": {
+      "get": {
+        "tags": [
+          "Body"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Body"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Body"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Body"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Body"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Body"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Body"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Body"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Body/{id}": {
+      "get": {
+        "tags": [
+          "Body"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Body"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Body"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Body"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Body"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Body"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Body"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Body"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/api/Faq": {
       "get": {
         "tags": [
@@ -1274,7 +1476,24 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionDetails"
+                }
+              }
+            }
           }
         }
       },
@@ -1488,12 +1707,76 @@
   },
   "components": {
     "schemas": {
+      "Body": {
+        "required": [
+          "order_number",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "maxLength": 50,
+            "type": "string"
+          },
+          "title_description": {
+            "maxLength": 256,
+            "type": "string",
+            "nullable": true
+          },
+          "order_number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_by": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "created_date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "modified_by": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "modified_date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deleted_by": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "deleted_date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "Faq": {
         "required": [
           "title"
         ],
         "type": "object",
         "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "type": "string"
+          },
           "question": {
             "type": "string",
             "nullable": true
@@ -1501,13 +1784,6 @@
           "answer": {
             "type": "string",
             "nullable": true
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "title": {
-            "type": "string"
           },
           "description": {
             "type": "string",
@@ -1604,6 +1880,10 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1628,8 +1908,7 @@
             "nullable": true
           },
           "footerDescription": {
-            "type": "integer",
-            "format": "int32",
+            "type": "string",
             "nullable": true
           },
           "createdBy": {
@@ -1663,8 +1942,8 @@
             "nullable": true
           },
           "content": {
-            "nullable": true,
-            "readOnly": true
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1722,6 +2001,10 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1738,10 +2021,6 @@
             "nullable": true
           },
           "url": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
             "type": "string",
             "nullable": true
           }
@@ -1777,7 +2056,7 @@
       "SubscriptionDetails": {
         "type": "object",
         "properties": {
-          "id": {
+          "detailID": {
             "type": "integer",
             "format": "int32"
           },
@@ -1785,44 +2064,87 @@
             "type": "integer",
             "format": "int32"
           },
-          "detail": {
+          "featureDescription": {
             "type": "string",
             "nullable": true
           },
-          "value": {
+          "detailType": {
             "type": "string",
+            "nullable": true
+          },
+          "createdDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "deletedDate": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         },
         "additionalProperties": false
       },
       "User": {
-        "required": [
-          "email",
-          "firstName",
-          "lastName",
-          "role"
-        ],
         "type": "object",
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           },
-          "firstName": {
-            "maxLength": 100,
-            "type": "string"
-          },
-          "lastName": {
-            "maxLength": 100,
-            "type": "string"
+          "username": {
+            "type": "string",
+            "nullable": true
           },
           "email": {
-            "maxLength": 100,
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
-          "role": {
-            "type": "string"
+          "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "modifiedDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "deletedDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false

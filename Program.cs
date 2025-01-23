@@ -1,78 +1,67 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using vueproject_asp.Repositories;
 
-namespace vueproject_asp
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        var builder = WebApplication.CreateBuilder(args);
+
+        // Add CORS policy to allow all origins, methods, and headers
+        builder.Services.AddCors(options =>
         {
-            var builder = WebApplication.CreateBuilder(args);
+            options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+        });
 
-            // Add CORS policy to allow all origins, methods, and headers
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-            });
+        // Register connection string from appsettings.json into DI container
+        builder.Services.AddScoped(sp =>
+            builder.Configuration.GetConnectionString("DefaultConnection"));
 
-            // Register connection string from appsettings.json into DI container (scoped for per-request use)
-            builder.Services.AddScoped(sp =>
-                builder.Configuration.GetConnectionString("DefaultConnection"));
+        // Register repositories for CRUD operations
+        builder.Services.AddScoped<BodyRepository>();
+        builder.Services.AddScoped<FaqRepository>();
+        builder.Services.AddScoped<FeaturePageRepository>();
+        builder.Services.AddScoped<FooterRepository>();
+        builder.Services.AddScoped<PageContentRepository>();
+        builder.Services.AddScoped<SocialMediaRepository>();
+        builder.Services.AddScoped<SubscriptionRepository>();
+        builder.Services.AddScoped<SubscriptionDetailsRepository>();
+        builder.Services.AddScoped<UserRepository>();
 
-            // Register repositories that use Dapper for data access
-            builder.Services.AddScoped<BodyRepository>();    // Body repository
-            builder.Services.AddScoped<UserRepository>();    // User repository
-            builder.Services.AddScoped<FaqRepository>();     // Faq repository
-            builder.Services.AddScoped<FeaturePageRepository>();  // FeaturePage repository
-            builder.Services.AddScoped<FooterRepository>();   // Footer repository
+        // Register AppHandler
+        builder.Services.AddScoped<AppHandler>();
 
-            // Register SocialMediaRepository with connection string
-            builder.Services.AddScoped<SocialMediaRepository>(provider =>
-                new SocialMediaRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+        // Add controllers for API
+        builder.Services.AddControllers();
 
-            // Register PageContentRepository with connection string
-            builder.Services.AddScoped<PageContentRepository>(provider =>
-                new PageContentRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+        // Swagger for API documentation (Optional, can be removed in production)
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
 
-            // Register SubscriptionRepository with connection string
-            builder.Services.AddScoped<SubscriptionRepository>(provider =>
-                new SubscriptionRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+        var app = builder.Build();
 
-            // Add controllers for API
-            builder.Services.AddControllers();
+        // Apply CORS policy globally
+        app.UseCors("AllowAll");
 
-            // Swagger for API documentation (Optional, can be removed in production)
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-            var app = builder.Build();
-
-            // Apply CORS policy globally
-            app.UseCors("AllowAll");
-
-            // Configure the HTTP request pipeline
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();  // Enable Swagger in development
-                app.UseSwaggerUI();  // Swagger UI
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");  // Error handling for production
-                app.UseHsts();  // HTTP Strict Transport Security
-            }
-
-            // Enforce HTTPS redirection and routing
-            app.UseHttpsRedirection();
-            app.UseRouting();
-
-            // Map controllers
-            app.MapControllers();
-
-            // Run the application
-            app.Run();
+        // Configure the HTTP request pipeline
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
+        else
+        {
+            app.UseExceptionHandler("/Home/Error");
+            app.UseHsts();
+        }
+
+        // Enforce HTTPS redirection and routing
+        app.UseHttpsRedirection();
+        app.UseRouting();
+
+        // Map controllers
+        app.MapControllers();
+
+        // Run the application
+        app.Run();
     }
 }

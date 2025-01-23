@@ -93,7 +93,7 @@ namespace vueproject_asp.Repositories
             return rowsAffected > 0;
         }
 
-        internal async Task GetPageContent()
+        internal async Task<PageContent> InsertPageContent(PageContent pageContent)
         {
             throw new NotImplementedException();
         }

@@ -23,22 +23,23 @@ namespace vueproject_asp.Models
         [JsonPropertyName("order_number")]
         public int OrderNumber { get; set; }
 
-        [JsonPropertyName("created_by")]
+        // These fields should be managed by the server, not the client
+        [JsonIgnore]
         public int? CreatedBy { get; set; }
 
-        [JsonPropertyName("created_date")]
+        [JsonIgnore]
         public DateTime? CreatedDate { get; set; }
 
-        [JsonPropertyName("modified_by")]
+        [JsonIgnore]
         public int? ModifiedBy { get; set; }
 
-        [JsonPropertyName("modified_date")]
+        [JsonIgnore]
         public DateTime? ModifiedDate { get; set; }
 
-        [JsonPropertyName("deleted_by")]
+        [JsonIgnore]
         public int? DeletedBy { get; set; }
 
-        [JsonPropertyName("deleted_date")]
+        [JsonIgnore]
         public DateTime? DeletedDate { get; set; }
     }
 }

@@ -9,74 +9,103 @@ namespace vueproject_asp.Repositories
 {
     public class FaqRepository
     {
-        private readonly string _connectionString;
+        private readonly AppHandler _appHandler;
 
-        public FaqRepository(string connectionString)
+        public FaqRepository(AppHandler appHandler)
         {
-            _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString), "Connection string cannot be null.");
+            _appHandler = appHandler ?? throw new ArgumentNullException(nameof(appHandler));
         }
 
-        // Get all FAQs
         public async Task<List<Faq>> GetFaqs()
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM dbo.faq"; // Updated to match the table name
-            var faqs = await connection.QueryAsync<Faq>(query);
-            return faqs.AsList();
+            try
+            {
+                var query = "SELECT * FROM dbo.faq";
+                return await _appHandler.ExecuteQueryAsync<Faq>(query);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error fetching FAQs", ex);
+            }
         }
 
-        // Get FAQ by ID
         public async Task<Faq> GetFaqById(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM dbo.faq WHERE ID = @Id"; // Updated to match the table name
-            return await connection.QueryFirstOrDefaultAsync<Faq>(query, new { Id = id });
-        }
-
-        // Create a new FAQ
-        public async Task<Faq> CreateFaq(Faq faq)
-        {
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                INSERT INTO dbo.faq (Title, Question, Answer, CreatedDate) 
-                VALUES (@Title, @Question, @Answer, @CreatedDate);
-                SELECT CAST(SCOPE_IDENTITY() as int)"; // Updated to match the table name
-            faq.ID = await connection.QuerySingleAsync<int>(query, new
+            try
             {
-                faq.Title,
-                faq.Question,
-                faq.Answer,
-                CreatedDate = DateTime.UtcNow
-            });
-            return faq;
+                var query = "SELECT * FROM dbo.faq WHERE ID = @Id";
+                return await _appHandler.ExecuteQueryFirstOrDefaultAsync<Faq>(query, new { Id = id });
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error fetching FAQ with ID {id}", ex);
+            }
         }
 
-        // Update an FAQ
+        public AppHandler Get_appHandler()
+        {
+            return _appHandler;
+        }
+
+        public async Task<Faq> CreateFaq(Faq faq, AppHandler _appHandler)
+        {
+            try
+            {
+                var query = @"
+                    INSERT INTO dbo.faq (Title, Question, Answer, CreatedDate) 
+                    VALUES (@Title, @Question, @Answer, @CreatedDate);
+                    SELECT CAST(SCOPE_IDENTITY() as int)";
+                faq.ID = await _appHandler.ExecuteScalarAsync<int>(query, new
+                {
+                    faq.Title,
+                    faq.Question,
+                    faq.Answer,
+                    CreatedDate = DateTime.UtcNow
+                });
+                return faq;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error creating FAQ", ex);
+            }
+        }
+
         public async Task<Faq> UpdateFaq(int id, Faq faq)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                UPDATE dbo.faq
-                SET Title = @Title, Question = @Question, Answer = @Answer, ModifiedDate = @ModifiedDate
-                WHERE ID = @Id"; // Updated to match the table name
-            var rowsAffected = await connection.ExecuteAsync(query, new
+            try
             {
-                faq.Title,
-                faq.Question,
-                faq.Answer,
-                ModifiedDate = DateTime.UtcNow,
-                Id = id
-            });
-            return rowsAffected > 0 ? faq : null;
+                var query = @"
+                    UPDATE dbo.faq
+                    SET Title = @Title, Question = @Question, Answer = @Answer, ModifiedDate = @ModifiedDate
+                    WHERE ID = @Id";
+                var rowsAffected = await _appHandler.ExecuteNonQueryAsync(query, new
+                {
+                    faq.Title,
+                    faq.Question,
+                    faq.Answer,
+                    ModifiedDate = DateTime.UtcNow,
+                    Id = id
+                });
+                return rowsAffected > 0 ? faq : null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error updating FAQ with ID {id}", ex);
+            }
         }
 
-        // Delete an FAQ
         public async Task<bool> DeleteFaq(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "DELETE FROM dbo.faq WHERE ID = @Id"; // Updated to match the table name
-            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
-            return rowsAffected > 0;
+            try
+            {
+                var query = "DELETE FROM dbo.faq WHERE ID = @Id";
+                var rowsAffected = await _appHandler.ExecuteNonQueryAsync(query, new { Id = id });
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error deleting FAQ with ID {id}", ex);
+            }
         }
     }
 }
