@@ -262,6 +262,11 @@ namespace vueproject_asp.Repositories
             return await Delete("SocialMedias", id);
         }
 
+        private async Task<bool> Delete(string v, int id)
+        {
+            throw new NotImplementedException();
+        }
+
         // Generic method to get all records of a specific entity
         private async Task<IEnumerable<T>> GetAll<T>(string tableName)
         {
@@ -279,4 +284,4 @@ namespace vueproject_asp.Repositories
         // Generic method to insert a new record
         private async Task<T> Insert<T>(string tableName, T entity)
         {
-            var columns = GetColumns(); } }
+            var columns = GetColumn
