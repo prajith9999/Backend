@@ -1,116 +1,57 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
-using vueproject_asp.Models;
+using LandWind.Models;
+using LandWind.Interfaces;
+using LandWind.Repositories;
 
-namespace vueproject_asp.Repositories
+namespace LandWind.Repositories
 {
-    public class FooterRepository
+    public class FooterRepository : IFooterRepository
     {
-        private readonly string _connectionString;
+        private readonly SqlConnection _connection;
 
-        // Constructor to inject the connection string
-        public FooterRepository(string connectionString)
+        public FooterRepository(SqlConnection connection)
         {
-            _connectionString = connectionString;
+            _connection = connection;
         }
 
-        // Get all Footer
-        public async Task<List<Footer>> GetFooter()
+        public async Task<List<Footer>> GetAll()
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM dbo.Footer"; // Using dbo.Footer
-            var footer = await connection.QueryAsync<Footer>(query);
-            return footer.AsList();
+            var query = "SELECT * FROM Footers";
+            var result = await _connection.QueryAsync<Footer>(query);
+            return (List<Footer>)result;
         }
 
-        // Get a single Footer by ID
-        public async Task<Footer> GetFooterById(int id)
+        public async Task<Footer> GetById(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM dbo.Footer WHERE ID = @Id"; // Using dbo.Footer
-            var footer = await connection.QueryFirstOrDefaultAsync<Footer>(query, new { Id = id });
-
-            if (footer == null)
-            {
-                throw new KeyNotFoundException($"Footer with ID {id} not found.");
-            }
-
-            return footer;
+            var query = "SELECT * FROM Footers WHERE ID = @id";
+            var result = await _connection.QueryFirstOrDefaultAsync<Footer>(query, new { id });
+            return result;
         }
 
-        // Create a new Footer
-        public async Task<Footer> CreateFooter(Footer footer)
+        public async Task<Footer> Create(Footer item)
         {
-            if (footer == null)
-            {
-                throw new ArgumentNullException(nameof(footer), "Footer cannot be null.");
-            }
-
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                INSERT INTO dbo.Footer (PageId, FooterTitle, FooterDescription, Content, CreatedDate)
-                VALUES (@PageId, @FooterTitle, @FooterDescription, @Content, @CreatedDate);
-                SELECT CAST(SCOPE_IDENTITY() as int)"; // Using dbo.Footer
-            var id = await connection.QuerySingleAsync<int>(query, new
-            {
-                footer.PageId,
-                footer.FooterTitle,
-                footer.FooterDescription,
-                footer.Content,
-                CreatedDate = DateTime.UtcNow
-            });
-
-            footer.ID = id;
-            return footer;
+            var query = "INSERT INTO Footers (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+            var id = await _connection.ExecuteScalarAsync<int>(query, item);
+            item.ID = id;
+            return item;
         }
 
-        // Update an existing Footer
-        public async Task UpdateFooter(Footer footer)
+        public async Task<Footer> Update(int id, Footer item)
         {
-            if (footer == null)
-            {
-                throw new ArgumentNullException(nameof(footer), "Footer cannot be null.");
-            }
-
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                UPDATE dbo.Footer
-                SET PageId = @PageId,
-                    FooterTitle = @FooterTitle,
-                    FooterDescription = @FooterDescription,
-                    Content = @Content,
-                    ModifiedDate = @ModifiedDate
-                WHERE ID = @Id"; // Using dbo.Footer
-            var rowsAffected = await connection.ExecuteAsync(query, new
-            {
-                footer.PageId,
-                footer.FooterTitle,
-                footer.FooterDescription,
-                footer.Content,
-                ModifiedDate = DateTime.UtcNow,
-                Id = footer.ID
-            });
-
-            if (rowsAffected == 0)
-            {
-                throw new KeyNotFoundException($"Footer with ID {footer.ID} not found.");
-            }
+            var query = "UPDATE Footers SET Title = @Title, ModifiedBy = @ModifiedBy, ModifiedDate = @ModifiedDate WHERE ID = @id";
+            await _connection.ExecuteAsync(query, new { item.Title, item.ModifiedBy, item.ModifiedDate, id });
+            return item;
         }
 
-        // Delete a Footer
-        public async Task DeleteFooter(int id)
+        public async Task<bool> Delete(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "DELETE FROM dbo.Footer WHERE ID = @Id"; // Using dbo.Footer
-            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
-
-            if (rowsAffected == 0)
-            {
-                throw new KeyNotFoundException($"Footer with ID {id} not found.");
-            }
+            var query = "DELETE FROM Footers WHERE ID = @id";
+            var rowsAffected = await _connection.ExecuteAsync(query, new { id });
+            return rowsAffected > 0;
         }
     }
 }

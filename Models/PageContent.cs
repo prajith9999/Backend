@@ -1,33 +1,22 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc; // For IActionResult
+using LandWind.Models;
 
-namespace vueproject_asp.Models
+namespace LandWind.Models
 {
     public class PageContent
     {
         [Key]
         [JsonPropertyName("id")]
-        public int ID { get; set; }  // The primary key mapped as 'id' in JSON
+        public int ID { get; set; }
 
         [Required]
         [MaxLength(128)]
         [JsonPropertyName("title")]
         public string Title { get; set; }
 
-        [Required]
-        [MaxLength(128)]
-        [JsonPropertyName("highlights")]
-        public string HighLights { get; set; }
-
-        [Required]
-        [JsonPropertyName("order_number")]
-        public int OrderNumber { get; set; }
-
-        [JsonPropertyName("content")]
-        public string Content { get; set; }
-
-        // These fields should be managed by the server, not the client
         [JsonIgnore]
         public int? CreatedBy { get; set; }
 
@@ -45,15 +34,5 @@ namespace vueproject_asp.Models
 
         [JsonIgnore]
         public DateTime? DeletedDate { get; set; }
-
-        // Parameterless constructor for Dapper
-        public PageContent() { }
-
-        // Constructor to ensure required properties are initialized
-        public PageContent(string title, string highLights)
-        {
-            Title = title ?? throw new ArgumentNullException(nameof(title));
-            HighLights = highLights ?? throw new ArgumentNullException(nameof(highLights));
-        }
     }
 }

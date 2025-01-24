@@ -1,139 +1,103 @@
-﻿using Dapper;
-using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using vueproject_asp.Models;
+using LandWind.Interfaces;
+using LandWind.Models;
+using LandWind.Repositories; // Correct place for this using directive
 
-namespace vueproject_asp.Repositories
+namespace LandWind.Handlers
 {
-    public class UserRepository
+    public class UserHandler
     {
-        private readonly string _connectionString;
+        private readonly IUserRepository _userRepository;
 
-        public UserRepository(string connectionString)
+        // Inject the repository into the handler
+        public UserHandler(IUserRepository userRepository)
         {
-            _connectionString = connectionString;
-        }
-
-        // Get all users
-        public async Task<List<User>> GetUsers()
-        {
-            try
-            {
-                using var connection = new SqlConnection(_connectionString);
-                var query = "SELECT * FROM dbo.[User]";
-                var users = await connection.QueryAsync<User>(query);
-                return users.AsList();
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                throw new Exception("Error fetching users", ex);
-            }
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
         // Get a user by ID
-        public async Task<User> GetUserById(int id)
+        public async Task<User> GetUserByIdAsync(int id)
         {
+            if (id <= 0) throw new ArgumentException("Invalid user ID.", nameof(id));
+
             try
             {
-                using var connection = new SqlConnection(_connectionString);
-                var query = "SELECT * FROM dbo.[User] WHERE ID = @Id";
-                return await connection.QueryFirstOrDefaultAsync<User>(query, new { Id = id });
+                var user = await _userRepository.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    throw new Exception("User not found.");
+                }
+
+                return user;
             }
             catch (Exception ex)
             {
-                // Log the exception
-                throw new Exception($"Error fetching user with ID {id}", ex);
+                // Log the exception or rethrow based on your needs
+                throw new Exception($"An error occurred while retrieving the user: {ex.Message}", ex);
+            }
+        }
+
+        // Get all users
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            try
+            {
+                return await _userRepository.GetAllUsersAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or rethrow based on your needs
+                throw new Exception($"An error occurred while retrieving users: {ex.Message}", ex);
             }
         }
 
         // Create a new user
-        public async Task<User> CreateUser(User user)
+        public async Task<User> CreateUserAsync(User user)
         {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
             try
             {
-                using var connection = new SqlConnection(_connectionString);
-                var query = @"
-                    INSERT INTO dbo.[User] (Username, Email, Password, FullName, PhoneNumber, CreatedBy, CreatedDate) 
-                    OUTPUT INSERTED.ID 
-                    VALUES (@Username, @Email, @Password, @FullName, @PhoneNumber, @CreatedBy, @CreatedDate)";
-
-                var id = await connection.QuerySingleAsync<int>(query, new
-                {
-                    user.Username,
-                    user.Email,
-                    user.Password,
-                    user.FullName,
-                    user.PhoneNumber,
-                    user.CreatedBy,
-                    user.CreatedDate
-                });
-
-                user.ID = id;
-                return user;
+                return await _userRepository.CreateUserAsync(user);
             }
             catch (Exception ex)
             {
-                // Log the exception
-                throw new Exception("Error creating user", ex);
+                // Log the exception or rethrow based on your needs
+                throw new Exception($"An error occurred while creating the user: {ex.Message}", ex);
             }
         }
 
         // Update an existing user
-        public async Task<User> UpdateUser(int id, User user)
+        public async Task<User> UpdateUserAsync(User user)
         {
+            if (user == null || user.ID <= 0) throw new ArgumentException("Invalid user details.");
+
             try
             {
-                using var connection = new SqlConnection(_connectionString);
-                var query = @"
-                    UPDATE dbo.[User] 
-                    SET Username = @Username, Email = @Email, Password = @Password, FullName = @FullName, 
-                        PhoneNumber = @PhoneNumber, ModifiedBy = @ModifiedBy, ModifiedDate = @ModifiedDate 
-                    WHERE ID = @Id";
-
-                var rowsAffected = await connection.ExecuteAsync(query, new
-                {
-                    Id = id,
-                    user.Username,
-                    user.Email,
-                    user.Password,
-                    user.FullName,
-                    user.PhoneNumber,
-                    user.ModifiedBy,
-                    user.ModifiedDate
-                });
-
-                if (rowsAffected == 0)
-                {
-                    return null; // No record was updated
-                }
-
-                user.ID = id;
-                return user;
+                return await _userRepository.UpdateUserAsync(user);
             }
             catch (Exception ex)
             {
-                // Log the exception
-                throw new Exception($"Error updating user with ID {id}", ex);
+                // Log the exception or rethrow based on your needs
+                throw new Exception($"An error occurred while updating the user: {ex.Message}", ex);
             }
         }
 
-        // Delete a user
-        public async Task<bool> DeleteUser(int id)
+        // Delete a user by ID
+        public async Task<bool> DeleteUserAsync(int id)
         {
+            if (id <= 0) throw new ArgumentException("Invalid user ID.", nameof(id));
+
             try
             {
-                using var connection = new SqlConnection(_connectionString);
-                var query = "DELETE FROM dbo.[User] WHERE ID = @Id";
-                var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
-
-                return rowsAffected > 0;
+                return await _userRepository.DeleteUserAsync(id);
             }
             catch (Exception ex)
             {
-                // Log the exception
-                throw new Exception($"Error deleting user with ID {id}", ex);
+                // Log the exception or rethrow based on your needs
+                throw new Exception($"An error occurred while deleting the user: {ex.Message}", ex);
             }
         }
     }

@@ -1,113 +1,85 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
-using Dapper;
-using Microsoft.Data.SqlClient;
-using vueproject_asp.Models;
+using Dapper;  // Add Dapper to the imports
+using LandWind.Models;
+using LandWind.Interfaces;
+using System.Data.SqlClient;
+using LandWind.Repositories;// Assuming you're using SQL Server
 
-namespace vueproject_asp.Repositories
+namespace LandWind.Repositories
 {
-    public class FeaturePageRepository
+    public class FeaturePageRepository : IFeaturePageRepository
     {
         private readonly string _connectionString;
 
-        // Constructor to inject the connection string
+        // Constructor to inject the connection string (or use DI for connection)
         public FeaturePageRepository(string connectionString)
         {
-            _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString), "Connection string cannot be null.");
+            _connectionString = connectionString;
         }
 
-        // Get all FeaturePages
-        public async Task<List<FeaturePage>> GetFeaturePages()
+        private IDbConnection DbConnection => new SqlConnection(_connectionString);
+
+        // Get all feature pages
+        public async Task<List<FeaturePage>> GetAll()
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM FeaturePage"; // Ensure the table name matches your database
-            var featurePages = await connection.QueryAsync<FeaturePage>(query);
-            return featurePages.AsList();
-        }
-
-        // Get a single FeaturePage by ID
-        public async Task<FeaturePage> GetFeaturePageById(int id)
-        {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM FeaturePage WHERE ID = @Id"; // Ensure the table name matches your database
-            var featurePage = await connection.QueryFirstOrDefaultAsync<FeaturePage>(query, new { Id = id });
-
-            if (featurePage == null)
+            using (var connection = DbConnection)
             {
-                throw new KeyNotFoundException($"FeaturePage with ID {id} not found.");
-            }
-
-            return featurePage;
-        }
-
-        // Create a new FeaturePage
-        public async Task<FeaturePage> CreateFeaturePage(FeaturePage featurePage)
-        {
-            if (featurePage == null)
-            {
-                throw new ArgumentNullException(nameof(featurePage), "FeaturePage cannot be null.");
-            }
-
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                INSERT INTO FeaturePage (Title, HeadingDescription, OrderNumber, CreatedDate, Description)
-                VALUES (@Title, @HeadingDescription, @OrderNumber, @CreatedDate, @Description);
-                SELECT CAST(SCOPE_IDENTITY() as int)"; // Ensure the table name matches your database
-            var id = await connection.QuerySingleAsync<int>(query, new
-            {
-                featurePage.Title,
-                featurePage.HeadingDescription,
-                featurePage.OrderNumber,
-                CreatedDate = DateTime.UtcNow,
-                featurePage.Description
-            });
-
-            featurePage.ID = id;
-            return featurePage;
-        }
-
-        // Update an existing FeaturePage
-        public async Task UpdateFeaturePage(FeaturePage featurePage)
-        {
-            if (featurePage == null)
-            {
-                throw new ArgumentNullException(nameof(featurePage), "FeaturePage cannot be null.");
-            }
-
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                UPDATE FeaturePage
-                SET Title = @Title,
-                    HeadingDescription = @HeadingDescription,
-                    OrderNumber = @OrderNumber,
-                    Description = @Description,
-                    ModifiedDate = @ModifiedDate
-                WHERE ID = @Id"; // Ensure the table name matches your database
-            var rowsAffected = await connection.ExecuteAsync(query, new
-            {
-                featurePage.Title,
-                featurePage.HeadingDescription,
-                featurePage.OrderNumber,
-                featurePage.Description,
-                ModifiedDate = DateTime.UtcNow,
-                Id = featurePage.ID
-            });
-
-            if (rowsAffected == 0)
-            {
-                throw new KeyNotFoundException($"FeaturePage with ID {featurePage.ID} not found.");
+                await connection.OpenAsync();
+                var result = await connection.QueryAsync<FeaturePage>("SELECT * FROM FeaturePages");
+                return result.AsList();
             }
         }
 
-        // Delete a FeaturePage
-        public async Task<bool> DeleteFeaturePage(int id)
+        // Get feature page by ID
+        public async Task<FeaturePage> GetById(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "DELETE FROM FeaturePage WHERE ID = @Id"; // Ensure the table name matches your database
-            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
+            using (var connection = DbConnection)
+            {
+                await connection.OpenAsync();
+                var result = await connection.QuerySingleOrDefaultAsync<FeaturePage>(
+                    "SELECT * FROM FeaturePages WHERE Id = @Id", new { Id = id });
+                return result;
+            }
+        }
 
-            return rowsAffected > 0; // Return true if deletion was successful
+        // Create a new feature page
+        public async Task<FeaturePage> Create(FeaturePage featurePage)
+        {
+            using (var connection = DbConnection)
+            {
+                await connection.OpenAsync();
+                var query = "INSERT INTO FeaturePages (Name, Description) VALUES (@Name, @Description); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+                var id = await connection.QuerySingleAsync<int>(query, featurePage);
+                featurePage.Id = id; // Assuming FeaturePage has Id as a property
+                return featurePage;
+            }
+        }
+
+        // Update an existing feature page
+        public async Task<FeaturePage> Update(int id, FeaturePage featurePage)
+        {
+            using (var connection = DbConnection)
+            {
+                await connection.OpenAsync();
+                var query = "UPDATE FeaturePages SET Name = @Name, Description = @Description WHERE Id = @Id";
+                await connection.ExecuteAsync(query, new { featurePage.Name, featurePage.Description, Id = id });
+                return featurePage;
+            }
+        }
+
+        // Delete a feature page by ID
+        public async Task<bool> Delete(int id)
+        {
+            using (var connection = DbConnection)
+            {
+                await connection.OpenAsync();
+                var query = "DELETE FROM FeaturePages WHERE Id = @Id";
+                var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+                return affectedRows > 0;
+            }
         }
     }
 }

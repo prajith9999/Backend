@@ -1,17 +1,38 @@
-﻿using System;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc; // For IActionResult
+using LandWind.Models;
 
-namespace vueproject_asp.Models
+namespace LandWind.Models
 {
     public class SubscriptionDetails
     {
-        internal readonly object ID;
+        [Key]
+        [JsonPropertyName("id")]
+        public int ID { get; set; }
 
-        public int DetailID { get; set; }  // Primary Key
-        public int SubscriptionID { get; set; }  // Foreign Key for Subscription
-        public string FeatureDescription { get; set; }  // Description of the feature
-        public string DetailType { get; set; }  // Type of the detail (e.g., Plan, Addon)
-        public DateTime CreatedDate { get; set; }  // Date when the record was created
-        public DateTime? ModifiedDate { get; set; }  // Date when the record was last modified
-        public string DeletedBy { get; set; }  // User who deleted the record (if applicable)
+        [Required]
+        [MaxLength(128)]
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
+
+        [JsonIgnore]
+        public int? CreatedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime? CreatedDate { get; set; }
+
+        [JsonIgnore]
+        public int? ModifiedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime? ModifiedDate { get; set; }
+
+        [JsonIgnore]
+        public int? DeletedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime? DeletedDate { get; set; }
     }
 }

@@ -1,129 +1,57 @@
-﻿using Dapper;
-using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using vueproject_asp.Models;
+using Dapper;
+using Microsoft.Data.SqlClient;
+using LandWind.Models;
+using LandWind.Interfaces;
+using LandWind.Repositories;
 
-namespace vueproject_asp.Repositories
+namespace LandWind.Repositories
 {
-    public class SubscriptionDetailsRepository
+    public class SubscriptionDetailsRepository : ISubscriptionDetailsRepository
     {
-        private readonly string _connectionString;
+        private readonly SqlConnection _connection;
 
-        // Constructor to inject the connection string
-        public SubscriptionDetailsRepository(string connectionString)
+        public SubscriptionDetailsRepository(SqlConnection connection)
         {
-            _connectionString = connectionString;
+            _connection = connection;
         }
 
-        // Get all subscription details
-        public async Task<List<SubscriptionDetails>> GetSubscriptionDetails()
+        public async Task<List<SubscriptionDetails>> GetAll()
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM SubscriptionDetails WHERE DeletedDate IS NULL"; // Only non-deleted records
-            var subscriptionDetails = await connection.QueryAsync<SubscriptionDetails>(query);
-            return subscriptionDetails.AsList();
+            var query = "SELECT * FROM SubscriptionDetailss";
+            var result = await _connection.QueryAsync<SubscriptionDetails>(query);
+            return (List<SubscriptionDetails>)result;
         }
 
-        // Get a subscription detail by ID
-        public async Task<SubscriptionDetails> GetSubscriptionDetailById(int id)
+        public async Task<SubscriptionDetails> GetById(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM SubscriptionDetails WHERE DetailID = @Id AND DeletedDate IS NULL";
-            return await connection.QueryFirstOrDefaultAsync<SubscriptionDetails>(query, new { Id = id });
+            var query = "SELECT * FROM SubscriptionDetailss WHERE ID = @id";
+            var result = await _connection.QueryFirstOrDefaultAsync<SubscriptionDetails>(query, new { id });
+            return result;
         }
 
-        // Create a new subscription detail
-        public async Task<SubscriptionDetails> CreateSubscriptionDetail(SubscriptionDetails subscriptionDetail)
+        public async Task<SubscriptionDetails> Create(SubscriptionDetails item)
         {
-            if (string.IsNullOrEmpty(subscriptionDetail.FeatureDescription))
-            {
-                throw new ArgumentException("FeatureDescription cannot be empty.");
-            }
-
-            if (string.IsNullOrEmpty(subscriptionDetail.DetailType))
-            {
-                throw new ArgumentException("DetailType cannot be empty.");
-            }
-
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                INSERT INTO SubscriptionDetails (SubscriptionID, FeatureDescription, DetailType, CreatedDate)
-                VALUES (@SubscriptionID, @FeatureDescription, @DetailType, @CreatedDate);
-                SELECT CAST(SCOPE_IDENTITY() as int)"; // Get the last inserted ID
-            var id = await connection.QuerySingleAsync<int>(query, new
-            {
-                subscriptionDetail.SubscriptionID,
-                subscriptionDetail.FeatureDescription,
-                subscriptionDetail.DetailType,
-                subscriptionDetail.CreatedDate
-            });
-
-            subscriptionDetail.DetailID = id;  // Assign the ID to the model
-            return subscriptionDetail;
+            var query = "INSERT INTO SubscriptionDetailss (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+            var id = await _connection.ExecuteScalarAsync<int>(query, item);
+            item.ID = id;
+            return item;
         }
 
-        // Update an existing subscription detail
-        public async Task<SubscriptionDetails> UpdateSubscriptionDetail(int id, SubscriptionDetails subscriptionDetail)
+        public async Task<SubscriptionDetails> Update(int id, SubscriptionDetails item)
         {
-            if (string.IsNullOrEmpty(subscriptionDetail.FeatureDescription))
-            {
-                throw new ArgumentException("FeatureDescription cannot be empty.");
-            }
-
-            if (string.IsNullOrEmpty(subscriptionDetail.DetailType))
-            {
-                throw new ArgumentException("DetailType cannot be empty.");
-            }
-
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                UPDATE SubscriptionDetails
-                SET SubscriptionID = @SubscriptionID,
-                    FeatureDescription = @FeatureDescription,
-                    DetailType = @DetailType,
-                    ModifiedDate = @ModifiedDate
-                WHERE DetailID = @Id AND DeletedDate IS NULL";
-            var rowsAffected = await connection.ExecuteAsync(query, new
-            {
-                subscriptionDetail.SubscriptionID,
-                subscriptionDetail.FeatureDescription,
-                subscriptionDetail.DetailType,
-                ModifiedDate = DateTime.UtcNow,  // Set modification date
-                Id = id
-            });
-
-            if (rowsAffected == 0)
-            {
-                return null; // No record was updated
-            }
-
-            return subscriptionDetail; // Return the updated subscription detail
+            var query = "UPDATE SubscriptionDetailss SET Title = @Title, ModifiedBy = @ModifiedBy, ModifiedDate = @ModifiedDate WHERE ID = @id";
+            await _connection.ExecuteAsync(query, new { item.Title, item.ModifiedBy, item.ModifiedDate, id });
+            return item;
         }
 
-        // Mark a subscription detail as deleted (soft delete)
-        public async Task<bool> DeleteSubscriptionDetail(int id, string deletedBy)
+        public async Task<bool> Delete(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                UPDATE SubscriptionDetails
-                SET DeletedBy = @DeletedBy,
-                    DeletedDate = @DeletedDate
-                WHERE DetailID = @Id AND DeletedDate IS NULL";
-            var rowsAffected = await connection.ExecuteAsync(query, new
-            {
-                DeletedBy = deletedBy,
-                DeletedDate = DateTime.UtcNow, // Set deletion date
-                Id = id
-            });
-
-            if (rowsAffected == 0)
-            {
-                throw new KeyNotFoundException($"SubscriptionDetail with ID {id} not found or already deleted.");
-            }
-
-            return true;
+            var query = "DELETE FROM SubscriptionDetailss WHERE ID = @id";
+            var rowsAffected = await _connection.ExecuteAsync(query, new { id });
+            return rowsAffected > 0;
         }
     }
 }

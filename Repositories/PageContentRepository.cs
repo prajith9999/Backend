@@ -1,101 +1,57 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
-using vueproject_asp.Models;
+using LandWind.Models;
+using LandWind.Interfaces;
+using LandWind.Repositories;
 
-namespace vueproject_asp.Repositories
+namespace LandWind.Repositories
 {
-    public class PageContentRepository
+    public class PageContentRepository : IPageContentRepository
     {
-        private readonly string _connectionString;
+        private readonly SqlConnection _connection;
 
-        // Constructor to inject the connection string
-        public PageContentRepository(string connectionString)
+        public PageContentRepository(SqlConnection connection)
         {
-            _connectionString = connectionString;
+            _connection = connection;
         }
 
-        // Get all PageContents
-        public async Task<List<PageContent>> GetPageContents()
+        public async Task<List<PageContent>> GetAll()
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM PageContent";
-            var pageContent = await connection.QueryAsync<PageContent>(query);
-            return pageContent.AsList();
+            var query = "SELECT * FROM PageContents";
+            var result = await _connection.QueryAsync<PageContent>(query);
+            return (List<PageContent>)result;
         }
 
-        // Get a single PageContent by ID
-        public async Task<PageContent> GetPageContentById(int id)
+        public async Task<PageContent> GetById(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM PageContents WHERE ID = @Id";
-            return await connection.QueryFirstOrDefaultAsync<PageContent>(query, new { Id = id });
+            var query = "SELECT * FROM PageContents WHERE ID = @id";
+            var result = await _connection.QueryFirstOrDefaultAsync<PageContent>(query, new { id });
+            return result;
         }
 
-        // Create a new PageContent
-        public async Task<PageContent> CreatePageContent(PageContent pageContent)
+        public async Task<PageContent> Create(PageContent item)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                INSERT INTO PageContents (Title, HighLights, OrderNumber, Content, CreatedDate)
-                VALUES (@Title, @HighLights, @OrderNumber, @Content, @CreatedDate);
-                SELECT CAST(SCOPE_IDENTITY() as int)";
-            var id = await connection.QuerySingleAsync<int>(query, new
-            {
-                pageContent.Title,
-                pageContent.HighLights,
-                pageContent.OrderNumber,
-                pageContent.Content,
-                CreatedDate = DateTime.UtcNow
-            });
-
-            pageContent.ID = id;
-            return pageContent;
+            var query = "INSERT INTO PageContents (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+            var id = await _connection.ExecuteScalarAsync<int>(query, item);
+            item.ID = id;
+            return item;
         }
 
-        // Update an existing PageContent
-        public async Task UpdatePageContent(PageContent pageContent)
+        public async Task<PageContent> Update(int id, PageContent item)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                UPDATE PageContents
-                SET Title = @Title,
-                    HighLights = @HighLights,
-                    OrderNumber = @OrderNumber,
-                    Content = @Content,
-                    ModifiedDate = @ModifiedDate
-                WHERE ID = @Id";
-            var rowsAffected = await connection.ExecuteAsync(query, new
-            {
-                pageContent.Title,
-                pageContent.HighLights,
-                pageContent.OrderNumber,
-                pageContent.Content,
-                ModifiedDate = DateTime.UtcNow,
-                Id = pageContent.ID
-            });
-
-            if (rowsAffected == 0)
-            {
-                throw new KeyNotFoundException($"PageContent with ID {pageContent.ID} not found.");
-            }
+            var query = "UPDATE PageContents SET Title = @Title, ModifiedBy = @ModifiedBy, ModifiedDate = @ModifiedDate WHERE ID = @id";
+            await _connection.ExecuteAsync(query, new { item.Title, item.ModifiedBy, item.ModifiedDate, id });
+            return item;
         }
 
-        // Delete a PageContent
-        public async Task<bool> DeletePageContent(int id)
+        public async Task<bool> Delete(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "DELETE FROM PageContents WHERE ID = @Id";
-            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
-
+            var query = "DELETE FROM PageContents WHERE ID = @id";
+            var rowsAffected = await _connection.ExecuteAsync(query, new { id });
             return rowsAffected > 0;
-        }
-
-        internal async Task<PageContent> InsertPageContent(PageContent pageContent)
-        {
-            throw new NotImplementedException();
         }
     }
 }

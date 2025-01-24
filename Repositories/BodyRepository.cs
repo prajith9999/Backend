@@ -1,151 +1,57 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 using Dapper;
-using vueproject_asp.Models;
+using Microsoft.Data.SqlClient;
+using LandWind.Models;
+using LandWind.Interfaces;
+using LandWind.Repositories;
 
-namespace vueproject_asp.Repositories
+namespace LandWind.Repositories
 {
-    public class BodyRepository
+    public class BodyRepository : IBodyRepository
     {
-        private readonly string _connectionString;
+        private readonly SqlConnection _connection;
 
-        public BodyRepository(string connectionString)
+        public BodyRepository(SqlConnection connection)
         {
-            _connectionString = connectionString;
+            _connection = connection;
         }
 
-        public async Task<List<Body>> GetBodies()
+        public async Task<List<Body>> GetAll()
         {
-            var handler = new DbHandler(_connectionString);
-            var query = "SELECT * FROM Bodies";
-            return await handler.ExecuteQueryAsync<Body>(query);
+            var query = "SELECT * FROM Bodys";
+            var result = await _connection.QueryAsync<Body>(query);
+            return (List<Body>)result;
         }
 
-        public async Task<Body> GetBodyById(int id)
+        public async Task<Body> GetById(int id)
         {
-            var handler = new DbHandler(_connectionString);
-            var query = "SELECT * FROM Bodies WHERE Id = @Id";
-            var parameters = new { Id = id };
-            var body = await handler.ExecuteQueryFirstOrDefaultAsync<Body>(query, parameters);
-
-            if (body == null)
-            {
-                throw new KeyNotFoundException($"Body with ID {id} not found.");
-            }
-
-            return body;
+            var query = "SELECT * FROM Bodys WHERE ID = @id";
+            var result = await _connection.QueryFirstOrDefaultAsync<Body>(query, new { id });
+            return result;
         }
 
-        public async Task<Body> InsertBody(Body body)
+        public async Task<Body> Create(Body item)
         {
-            if (body == null)
-            {
-                throw new ArgumentNullException(nameof(body), "Body cannot be null.");
-            }
-
-            body.CreatedDate ??= DateTime.UtcNow;
-
-            var handler = new DbHandler(_connectionString);
-            var query = @"
-                INSERT INTO Bodies (Title, TitleDescription, OrderNumber, CreatedBy, CreatedDate)
-                VALUES (@Title, @TitleDescription, @OrderNumber, @CreatedBy, @CreatedDate);
-                SELECT CAST(SCOPE_IDENTITY() as int)";
-            var parameters = new { body.Title, body.TitleDescription, body.OrderNumber, body.CreatedBy, body.CreatedDate };
-            var id = await handler.ExecuteScalarAsync<int>(query, parameters);
-
-            body.ID = id;
-            return body;
+            var query = "INSERT INTO Bodys (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+            var id = await _connection.ExecuteScalarAsync<int>(query, item);
+            item.ID = id;
+            return item;
         }
 
-        public async Task<Body> UpdateBody(int id, Body body)
+        public async Task<Body> Update(int id, Body item)
         {
-            if (body == null)
-            {
-                throw new ArgumentNullException(nameof(body), "Body cannot be null.");
-            }
-
-            var handler = new DbHandler(_connectionString);
-            var query = "SELECT * FROM Bodies WHERE Id = @Id";
-            var parameters = new { Id = id };
-            var existingBody = await handler.ExecuteQueryFirstOrDefaultAsync<Body>(query, parameters);
-
-            if (existingBody == null)
-            {
-                throw new KeyNotFoundException($"Body with ID {id} not found.");
-            }
-
-            var updateQuery = @"
-                UPDATE Bodies
-                SET Title = @Title,
-                    TitleDescription = @TitleDescription,
-                    OrderNumber = @OrderNumber,
-                    ModifiedBy = @ModifiedBy,
-                    ModifiedDate = @ModifiedDate
-                WHERE Id = @Id";
-
-            var updateParameters = new
-            {
-                body.Title,
-                body.TitleDescription,
-                body.OrderNumber,
-                body.ModifiedBy,
-                ModifiedDate = DateTime.UtcNow,
-                Id = id
-            };
-
-            await handler.ExecuteAsync(updateQuery, updateParameters);
-
-            return body;
+            var query = "UPDATE Bodys SET Title = @Title, ModifiedBy = @ModifiedBy, ModifiedDate = @ModifiedDate WHERE ID = @id";
+            await _connection.ExecuteAsync(query, new { item.Title, item.ModifiedBy, item.ModifiedDate, id });
+            return item;
         }
 
-        public async Task<bool> DeleteBody(int id)
+        public async Task<bool> Delete(int id)
         {
-            var handler = new DbHandler(_connectionString);
-            var query = "DELETE FROM Bodies WHERE Id = @Id";
-            var parameters = new { Id = id };
-            var rowsAffected = await handler.ExecuteAsync(query, parameters);
-
+            var query = "DELETE FROM Bodys WHERE ID = @id";
+            var rowsAffected = await _connection.ExecuteAsync(query, new { id });
             return rowsAffected > 0;
-        }
-    }
-
-    public class DbHandler
-    {
-        private readonly string _connectionString;
-
-        public DbHandler(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
-        public async Task<List<T>> ExecuteQueryAsync<T>(string query, object parameters = null)
-        {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-            return (await connection.QueryAsync<T>(query, parameters)).AsList();
-        }
-
-        public async Task<T> ExecuteQueryFirstOrDefaultAsync<T>(string query, object parameters = null)
-        {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-            return await connection.QueryFirstOrDefaultAsync<T>(query, parameters);
-        }
-
-        public async Task<T> ExecuteScalarAsync<T>(string query, object parameters = null)
-        {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-            return await connection.ExecuteScalarAsync<T>(query, parameters);
-        }
-
-        public async Task<int> ExecuteAsync(string query, object parameters = null)
-        {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-            return await connection.ExecuteAsync(query, parameters);
         }
     }
 }

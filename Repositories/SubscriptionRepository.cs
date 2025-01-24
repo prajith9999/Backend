@@ -1,83 +1,57 @@
-﻿using Dapper;
-using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using vueproject_asp.Models;
+using Dapper;
+using Microsoft.Data.SqlClient;
+using LandWind.Models;
+using LandWind.Interfaces;
+using LandWind.Repositories;
 
-namespace vueproject_asp.Repositories
+namespace LandWind.Repositories
 {
-    public class SubscriptionRepository
+    public class SubscriptionRepository : ISubscriptionRepository
     {
-        private readonly string _connectionString;
+        private readonly SqlConnection _connection;
 
-        // Constructor to inject the connection string
-        public SubscriptionRepository(string connectionString)
+        public SubscriptionRepository(SqlConnection connection)
         {
-            _connectionString = connectionString;
+            _connection = connection;
         }
 
-        // Get all subscriptions
-        public async Task<List<Subscription>> GetSubscription()
+        public async Task<List<Subscription>> GetAll()
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM dbo.Subscription";  // Simple SELECT query
-            var subscriptions = await connection.QueryAsync<Subscription>(query);
-            return subscriptions.AsList();
+            var query = "SELECT * FROM Subscriptions";
+            var result = await _connection.QueryAsync<Subscription>(query);
+            return (List<Subscription>)result;
         }
 
-        // Get a subscription by ID
-        public async Task<Subscription> GetSubscriptionById(int id)
+        public async Task<Subscription> GetById(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM dbo.Subscription WHERE ID = @Id";  // Query by ID
-            var subscription = await connection.QueryFirstOrDefaultAsync<Subscription>(query, new { Id = id });
-            return subscription;  // Return the subscription or null if not found
+            var query = "SELECT * FROM Subscriptions WHERE ID = @id";
+            var result = await _connection.QueryFirstOrDefaultAsync<Subscription>(query, new { id });
+            return result;
         }
 
-        // Insert a new subscription
-        public async Task InsertSubscription(Subscription subscription)
+        public async Task<Subscription> Create(Subscription item)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                INSERT INTO dbo.Subscription (Name, StartDate, EndDate, Price)
-                VALUES (@Name, @StartDate, @EndDate, @Price);
-                SELECT CAST(SCOPE_IDENTITY() AS INT);";  // Insert and return the ID
-            var id = await connection.QuerySingleAsync<int>(query, new
-            {
-                subscription.Name,
-                subscription.StartDate,
-                subscription.EndDate,
-                subscription.Price
-            });
-
-            subscription.ID = id;  // Set the ID of the inserted subscription
+            var query = "INSERT INTO Subscriptions (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+            var id = await _connection.ExecuteScalarAsync<int>(query, item);
+            item.ID = id;
+            return item;
         }
 
-        // Update an existing subscription
-        public async Task UpdateSubscription(Subscription subscription)
+        public async Task<Subscription> Update(int id, Subscription item)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                UPDATE dbo.Subscription
-                SET Name = @Name, StartDate = @StartDate, EndDate = @EndDate, Price = @Price
-                WHERE ID = @Id";  // Update query
-            await connection.ExecuteAsync(query, new
-            {
-                subscription.ID,
-                subscription.Name,
-                subscription.StartDate,
-                subscription.EndDate,
-                subscription.Price
-            });
+            var query = "UPDATE Subscriptions SET Title = @Title, ModifiedBy = @ModifiedBy, ModifiedDate = @ModifiedDate WHERE ID = @id";
+            await _connection.ExecuteAsync(query, new { item.Title, item.ModifiedBy, item.ModifiedDate, id });
+            return item;
         }
 
-        // Delete a subscription
-        public async Task<bool> DeleteSubscription(int id)
+        public async Task<bool> Delete(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "DELETE FROM dbo.Subscription WHERE ID = @Id";  // Delete query
-            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
-            return rowsAffected > 0;  // Return true if rows are affected
+            var query = "DELETE FROM Subscriptions WHERE ID = @id";
+            var rowsAffected = await _connection.ExecuteAsync(query, new { id });
+            return rowsAffected > 0;
         }
     }
 }

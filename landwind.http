@@ -1,6 +1,0 @@
-@landwind_HostAddress = http://localhost:5095
-
-GET {{landwind_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

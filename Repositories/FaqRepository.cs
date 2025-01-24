@@ -1,111 +1,57 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
-using vueproject_asp.Models;
+using LandWind.Models;
+using LandWind.Interfaces;
+using LandWind.Repositories;
 
-namespace vueproject_asp.Repositories
+namespace LandWind.Repositories
 {
-    public class FaqRepository
+    public class FaqRepository : IFaqRepository
     {
-        private readonly AppHandler _appHandler;
+        private readonly SqlConnection _connection;
 
-        public FaqRepository(AppHandler appHandler)
+        public FaqRepository(SqlConnection connection)
         {
-            _appHandler = appHandler ?? throw new ArgumentNullException(nameof(appHandler));
+            _connection = connection;
         }
 
-        public async Task<List<Faq>> GetFaqs()
+        public async Task<List<Faq>> GetAll()
         {
-            try
-            {
-                var query = "SELECT * FROM dbo.faq";
-                return await _appHandler.ExecuteQueryAsync<Faq>(query);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error fetching FAQs", ex);
-            }
+            var query = "SELECT * FROM Faqs";
+            var result = await _connection.QueryAsync<Faq>(query);
+            return (List<Faq>)result;
         }
 
-        public async Task<Faq> GetFaqById(int id)
+        public async Task<Faq> GetById(int id)
         {
-            try
-            {
-                var query = "SELECT * FROM dbo.faq WHERE ID = @Id";
-                return await _appHandler.ExecuteQueryFirstOrDefaultAsync<Faq>(query, new { Id = id });
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error fetching FAQ with ID {id}", ex);
-            }
+            var query = "SELECT * FROM Faqs WHERE ID = @id";
+            var result = await _connection.QueryFirstOrDefaultAsync<Faq>(query, new { id });
+            return result;
         }
 
-        public AppHandler Get_appHandler()
+        public async Task<Faq> Create(Faq item)
         {
-            return _appHandler;
+            var query = "INSERT INTO Faqs (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+            var id = await _connection.ExecuteScalarAsync<int>(query, item);
+            item.ID = id;
+            return item;
         }
 
-        public async Task<Faq> CreateFaq(Faq faq, AppHandler _appHandler)
+        public async Task<Faq> Update(int id, Faq item)
         {
-            try
-            {
-                var query = @"
-                    INSERT INTO dbo.faq (Title, Question, Answer, CreatedDate) 
-                    VALUES (@Title, @Question, @Answer, @CreatedDate);
-                    SELECT CAST(SCOPE_IDENTITY() as int)";
-                faq.ID = await _appHandler.ExecuteScalarAsync<int>(query, new
-                {
-                    faq.Title,
-                    faq.Question,
-                    faq.Answer,
-                    CreatedDate = DateTime.UtcNow
-                });
-                return faq;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error creating FAQ", ex);
-            }
+            var query = "UPDATE Faqs SET Title = @Title, ModifiedBy = @ModifiedBy, ModifiedDate = @ModifiedDate WHERE ID = @id";
+            await _connection.ExecuteAsync(query, new { item.Title, item.ModifiedBy, item.ModifiedDate, id });
+            return item;
         }
 
-        public async Task<Faq> UpdateFaq(int id, Faq faq)
+        public async Task<bool> Delete(int id)
         {
-            try
-            {
-                var query = @"
-                    UPDATE dbo.faq
-                    SET Title = @Title, Question = @Question, Answer = @Answer, ModifiedDate = @ModifiedDate
-                    WHERE ID = @Id";
-                var rowsAffected = await _appHandler.ExecuteNonQueryAsync(query, new
-                {
-                    faq.Title,
-                    faq.Question,
-                    faq.Answer,
-                    ModifiedDate = DateTime.UtcNow,
-                    Id = id
-                });
-                return rowsAffected > 0 ? faq : null;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error updating FAQ with ID {id}", ex);
-            }
-        }
-
-        public async Task<bool> DeleteFaq(int id)
-        {
-            try
-            {
-                var query = "DELETE FROM dbo.faq WHERE ID = @Id";
-                var rowsAffected = await _appHandler.ExecuteNonQueryAsync(query, new { Id = id });
-                return rowsAffected > 0;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error deleting FAQ with ID {id}", ex);
-            }
+            var query = "DELETE FROM Faqs WHERE ID = @id";
+            var rowsAffected = await _connection.ExecuteAsync(query, new { id });
+            return rowsAffected > 0;
         }
     }
 }

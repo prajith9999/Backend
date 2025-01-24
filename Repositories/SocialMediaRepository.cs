@@ -1,87 +1,56 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
-using vueproject_asp.Models;
+using LandWind.Models;
+using LandWind.Interfaces;
+using LandWind.Repositories;
 
-namespace vueproject_asp.Repositories
+namespace LandWind.Repositories
 {
-    public class SocialMediaRepository
+    public class SocialMediaRepository : ISocialMediaRepository
     {
-        private readonly string _connectionString;
+        private readonly SqlConnection _connection;
 
-        // Constructor to inject the connection string
-        public SocialMediaRepository(string connectionString)
+        public SocialMediaRepository(SqlConnection connection)
         {
-            _connectionString = connectionString;
+            _connection = connection;
         }
 
-        // Get all Social Media records
-        public async Task<List<SocialMedia>> GetSocialMediaAsync()
+        public async Task<List<SocialMedia>> GetAll()
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM SocialMedia";
-            var result = await connection.QueryAsync<SocialMedia>(query);
-            return result.AsList();
+            var query = "SELECT * FROM SocialMedias";
+            var result = await _connection.QueryAsync<SocialMedia>(query);
+            return (List<SocialMedia>)result;
         }
 
-        // Get Social Media by ID
-        public async Task<SocialMedia> GetSocialMediaByIdAsync(int id)
+        public async Task<SocialMedia> GetById(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "SELECT * FROM SocialMedia WHERE ID = @Id";
-            var result = await connection.QueryFirstOrDefaultAsync<SocialMedia>(query, new { Id = id });
+            var query = "SELECT * FROM SocialMedias WHERE ID = @id";
+            var result = await _connection.QueryFirstOrDefaultAsync<SocialMedia>(query, new { id });
             return result;
         }
 
-        // Create new Social Media record
-        public async Task<SocialMedia> CreateSocialMediaAsync(SocialMedia socialMedia)
+        public async Task<SocialMedia> Create(SocialMedia item)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                INSERT INTO SocialMedia (Name, URL, CreatedDate)
-                VALUES (@Name, @URL, @CreatedDate);
-                SELECT CAST(SCOPE_IDENTITY() AS INT)";
-            var id = await connection.QuerySingleAsync<int>(query, new
-            {
-                socialMedia.Name,
-                socialMedia.URL,
-                CreatedDate = DateTime.UtcNow
-            });
-
-            socialMedia.ID = id;
-            return socialMedia;
+            var query = "INSERT INTO SocialMedias (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate); SELECT CAST(SCOPE_IDENTITY() AS INT)";
+            var id = await _connection.ExecuteScalarAsync<int>(query, item);
+            item.ID = id;
+            return item;
         }
 
-        // Update existing Social Media record
-        public async Task<SocialMedia> UpdateSocialMediaAsync(int id, SocialMedia socialMedia)
+        public async Task<SocialMedia> Update(int id, SocialMedia item)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = @"
-                UPDATE SocialMedia
-                SET Name = @Name,
-                    URL = @URL,
-                    ModifiedDate = @ModifiedDate
-                WHERE ID = @Id;
-                SELECT * FROM SocialMedia WHERE ID = @Id";
-            var updatedSocialMedia = await connection.QueryFirstOrDefaultAsync<SocialMedia>(query, new
-            {
-                id,
-                socialMedia.Name,
-                socialMedia.URL,
-                ModifiedDate = DateTime.UtcNow
-            });
-
-            return updatedSocialMedia;
+            var query = "UPDATE SocialMedias SET Title = @Title, ModifiedBy = @ModifiedBy, ModifiedDate = @ModifiedDate WHERE ID = @id";
+            await _connection.ExecuteAsync(query, new { item.Title, item.ModifiedBy, item.ModifiedDate, id });
+            return item;
         }
 
-        // Delete a Social Media record
-        public async Task<bool> DeleteSocialMediaAsync(int id)
+        public async Task<bool> Delete(int id)
         {
-            using var connection = new SqlConnection(_connectionString);
-            var query = "DELETE FROM SocialMedia WHERE ID = @Id";
-            var rowsAffected = await connection.ExecuteAsync(query, new { Id = id });
+            var query = "DELETE FROM SocialMedias WHERE ID = @id";
+            var rowsAffected = await _connection.ExecuteAsync(query, new { id });
             return rowsAffected > 0;
         }
     }

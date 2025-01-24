@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("landwind")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dcd73489f68a41e279edb0c17ad4ae480d644ab6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+af3317d883598372b45a72a3fe8d9406aa09f2cc")]
 [assembly: System.Reflection.AssemblyProductAttribute("landwind")]
 [assembly: System.Reflection.AssemblyTitleAttribute("landwind")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,6 +1,0 @@
-@vueproject_asp_HostAddress = http://localhost:5248
-
-GET {{vueproject_asp_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

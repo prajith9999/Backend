@@ -1,22 +1,38 @@
-﻿using System;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc; // For IActionResult
+using LandWind.Models;
 
-namespace vueproject_asp.Models
+namespace LandWind.Models
 {
     public class SocialMedia
     {
-        public int ID { get; set; }  // Unique identifier for the social media record
-        public string Name { get; set; }  // Name of the social media platform (e.g., "Facebook", "Twitter")
-        public string URL { get; set; }   // URL to the social media page (e.g., "https://www.facebook.com")
+        [Key]
+        [JsonPropertyName("id")]
+        public int ID { get; set; }
 
-        // Constructor to initialize the SocialMedia object
-        public SocialMedia(int id, string name, string url)
-        {
-            ID = id;
-            Name = name ?? throw new ArgumentNullException(nameof(name));  // Ensure name is not null
-            URL = url ?? throw new ArgumentNullException(nameof(url));      // Ensure URL is not null
-        }
+        [Required]
+        [MaxLength(128)]
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
 
-        // Parameterless constructor for flexibility (used for deserialization, etc.)
-        public SocialMedia() { }
+        [JsonIgnore]
+        public int? CreatedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime? CreatedDate { get; set; }
+
+        [JsonIgnore]
+        public int? ModifiedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime? ModifiedDate { get; set; }
+
+        [JsonIgnore]
+        public int? DeletedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime? DeletedDate { get; set; }
     }
 }
