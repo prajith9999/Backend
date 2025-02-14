@@ -1,12 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using LandWind.Models;
-using LandWind.Interfaces;  
-
+﻿using LandWind.Models;
+//using LandWind.Interfaces;
+using LandWind.Repositories;
 
 namespace LandWind.Handler
 {
+    public interface IFeaturePageHandler
+    {
+        Task<List<FeaturePage>> GetFeaturePages();
+        Task<FeaturePage> GetFeaturePageById(int id);
+        Task<FeaturePage> CreateFeaturePage(FeaturePage featurePage);
+        Task<FeaturePage> UpdateFeaturePage(int id, FeaturePage featurePage);
+        Task<bool> DeleteFeaturePage(int id);
+        Task GetFeatureById(int id);
+    }
     public class FeaturePageHandler : IFeaturePageHandler
     {
         private readonly IFeaturePageRepository _repository;
@@ -92,6 +98,11 @@ namespace LandWind.Handler
             {
                 throw new Exception("An error occurred while deleting the feature page.", ex);
             }
+        }
+
+        public Task GetFeatureById(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

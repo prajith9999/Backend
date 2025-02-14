@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using LandWind.Interfaces;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using LandWind.Models;
-using LandWind.Interfaces; // Assuming User is in LandWind.Models
+
 
 namespace LandWind.Interfaces
 {

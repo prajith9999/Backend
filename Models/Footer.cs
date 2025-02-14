@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc; // For IActionResult
-using LandWind.Models;
 
 namespace LandWind.Models
 {
@@ -14,8 +13,11 @@ namespace LandWind.Models
 
         [Required]
         [MaxLength(128)]
-        [JsonPropertyName("title")]
-        public string Title { get; set; }
+        [JsonPropertyName("footerTitle")]  // This corresponds to FooterTitle in the database
+        public string FooterTitle { get; set; }
+
+        [JsonPropertyName("footerDescription")]  // Added for FooterDescription
+        public string FooterDescription { get; set; }
 
         [JsonIgnore]
         public int? CreatedBy { get; set; }

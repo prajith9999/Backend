@@ -1,17 +1,23 @@
-﻿using System;
-using System.Threading.Tasks;
-using LandWind.Models;
+﻿using LandWind.Models;
 using LandWind.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+using LandWind.Repositories;
+using LandWind.Exceptions; 
 
 namespace LandWind.Handlers
 {
-    // Corrected the inheritance issue by removing : FooterHandler
-    public class FooterHandler
+    public interface IFooterHandler
+    {
+        Task<Footer> GetFooter();
+        Task<Footer> GetFooterById(int id);
+        Task<Footer> CreateFooter(Footer footer);
+        Task<Footer> UpdateFooter(int id, Footer footer);
+        Task<bool> DeleteFooter(int id);
+    }
+
+    public class FooterHandler : IFooterHandler
     {
         private readonly IFooterRepository _repository;
 
-        // Constructor to inject the IFooterRepository
         public FooterHandler(IFooterRepository repository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -20,9 +26,19 @@ namespace LandWind.Handlers
         // Get footer data
         public async Task<Footer> GetFooter()
         {
-            var footer = await _repository.GetFooter();
-            if (footer == null) throw new NotFoundException("Footer not found.");
-            return footer;
+            try
+            {
+                var footer = await _repository.GetFooter();
+                if (footer == null)
+                {
+                    throw new NotFoundException("Footer not found.");
+                }
+                return footer;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while fetching the footer.", ex);
+            }
         }
 
         // Get footer by ID
@@ -30,10 +46,19 @@ namespace LandWind.Handlers
         {
             if (id <= 0) throw new InvalidInputException("Invalid ID provided.");
 
-            var footer = await _repository.GetFooterById(id);
-            if (footer == null) throw new NotFoundException("Footer not found.");
-
-            return footer;
+            try
+            {
+                var footer = await _repository.GetFooterById(id);
+                if (footer == null)
+                {
+                    throw new NotFoundException("Footer not found.");
+                }
+                return footer;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while fetching the footer by ID.", ex);
+            }
         }
 
         // Create a new footer
@@ -41,15 +66,29 @@ namespace LandWind.Handlers
         {
             if (footer == null) throw new InvalidInputException("Invalid input.");
 
-            return await _repository.CreateFooter(footer);
+            try
+            {
+                return await _repository.CreateFooter(footer);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while creating the footer.", ex);
+            }
         }
 
-        // Update footer
+        // Update existing footer
         public async Task<Footer> UpdateFooter(int id, Footer footer)
         {
             if (id <= 0 || footer == null) throw new InvalidInputException("Invalid input.");
 
-            return await _repository.UpdateFooter(id, footer);
+            try
+            {
+                return await _repository.UpdateFooter(id, footer);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while updating the footer.", ex);
+            }
         }
 
         // Delete footer by ID
@@ -57,22 +96,19 @@ namespace LandWind.Handlers
         {
             if (id <= 0) throw new InvalidInputException("Invalid ID provided.");
 
-            var isDeleted = await _repository.DeleteFooter(id);
-            if (!isDeleted) throw new NotFoundException("Footer not found.");
-
-            return isDeleted;
+            try
+            {
+                var isDeleted = await _repository.DeleteFooter(id);
+                if (!isDeleted)
+                {
+                    throw new NotFoundException("Footer not found.");
+                }
+                return isDeleted;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while deleting the footer.", ex);
+            }
         }
-    }
-
-    // Custom exception for NotFound errors
-    public class NotFoundException : Exception
-    {
-        public NotFoundException(string message) : base(message) { }
-    }
-
-    // Custom exception for invalid input errors
-    public class InvalidInputException : Exception
-    {
-        public InvalidInputException(string message) : base(message) { }
     }
 }

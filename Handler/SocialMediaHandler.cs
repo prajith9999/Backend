@@ -1,12 +1,21 @@
 ﻿using LandWind.Interfaces;
 using LandWind.Models;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace LandWind.Handlers
 {
-    public class SocialMediaHandler
+    // Interface for SocialMediaHandler
+    public interface ISocialMediaHandler
+    {
+        Task<IActionResult> GetSocialMedia();
+        Task<IActionResult> GetSocialMediaById(int id);
+        Task<IActionResult> CreateSocialMedia(SocialMedia socialMedia);
+        Task<IActionResult> UpdateSocialMedia(int id, SocialMedia socialMedia);
+        Task<IActionResult> DeleteSocialMedia(int id);
+    }
+
+    // SocialMediaHandler implementation
+    public class SocialMediaHandler : ISocialMediaHandler
     {
         private readonly ISocialMediaRepository _repository;
 
@@ -49,18 +58,40 @@ namespace LandWind.Handlers
         // Create a new social media
         public async Task<IActionResult> CreateSocialMedia(SocialMedia socialMedia)
         {
-            if (socialMedia == null) return new BadRequestObjectResult("Invalid input.");  // 400 Bad Request
+            if (socialMedia == null)
+            {
+                return BadRequest("Invalid input.");  // 400 Bad Request
+            }
 
             try
             {
                 var result = await _repository.Create(socialMedia);
-                return new CreatedAtActionResult(nameof(GetSocialMediaById), new { id = result.ID }, result);  // 201 Created
+
+                // Ensure result is not null before proceeding
+                if (result == null)
+                {
+                    return BadRequest("Failed to create social media.");  // 400 Bad Request
+                }
+
+                return CreatedAtAction(nameof(GetSocialMediaById), new { id = result.ID }, result);  // 201 Created
             }
             catch (Exception ex)
             {
+                // Return a generic error handling response
                 return HandleError(ex);
             }
         }
+
+        private IActionResult CreatedAtAction(string v, object value, SocialMedia result)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IActionResult BadRequest(string v)
+        {
+            throw new NotImplementedException();
+        }
+
 
         // Update existing social media
         public async Task<IActionResult> UpdateSocialMedia(int id, SocialMedia socialMedia)

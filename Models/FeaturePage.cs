@@ -1,21 +1,27 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Mvc; // For IActionResult
-using LandWind.Models;
 
 namespace LandWind.Models
 {
     public class FeaturePage
     {
         [Key]
-        [JsonPropertyName("id")]
+        [JsonPropertyName("PageId")]
         public int ID { get; set; }
 
         [Required]
         [MaxLength(128)]
-        [JsonPropertyName("title")]
+        [JsonPropertyName("FooterTitle")]
         public string Title { get; set; }
+
+        [Required]
+        [MaxLength(256)]
+        [JsonPropertyName("Name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("Description")]
+        public string Description { get; set; }  // Make sure this property is here
 
         [JsonIgnore]
         public int? CreatedBy { get; set; }
