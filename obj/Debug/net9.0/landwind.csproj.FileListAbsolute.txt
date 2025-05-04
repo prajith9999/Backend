@@ -1,0 +1,8 @@
+C:\Users\LENOVO\source\repos\Landwind\obj\Debug\net9.0\landwind.csproj.AssemblyReference.cache
+C:\Users\LENOVO\source\repos\Landwind\obj\Debug\net9.0\landwind.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\LENOVO\source\repos\Landwind\obj\Debug\net9.0\landwind.AssemblyInfoInputs.cache
+C:\Users\LENOVO\source\repos\Landwind\obj\Debug\net9.0\landwind.AssemblyInfo.cs
+C:\Users\LENOVO\source\repos\Landwind\obj\Debug\net9.0\landwind.csproj.CoreCompileInputs.cache
+C:\Users\LENOVO\source\repos\Landwind\obj\Debug\net9.0\landwind.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\LENOVO\source\repos\Landwind\obj\Debug\net9.0\landwind.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\LENOVO\source\repos\Landwind\obj\Debug\net9.0\landwind.sourcelink.json
